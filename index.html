@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 Senate Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: control bar (election, date, race, model) + summary strip; map beside the histogram and national panel;
+   timelines; race ledger with expandable poll lists. */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --ink: #1b1f27; --muted: #5d6573; --line: #d9dde4;
+  --dem: #2457c5; --rep: #c8322f; --tossup: #e7e3ef; --nodata: #e6e8ec; --nodata-ink: #8a909b;
+  --s-sen: #2a78d6; --s-house: #eb6834; --s-pres: #1baf7a; --focus: #7a4fd6;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --tossup: #3a3646; --nodata: #232831; --nodata-ink: #6c7380;
+  --s-sen: #3987e5; --s-house: #d95926; --s-pres: #199e70; --focus: #a98bf0; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --tossup: #3a3646; --nodata: #232831; --nodata-ink: #6c7380;
+  --s-sen: #3987e5; --s-house: #d95926; --s-pres: #199e70; --focus: #a98bf0; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45 }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 48px; padding-inline: 16px; display: grid; gap: 18px }
+h1 { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .01em; margin: 0; line-height: 1; text-wrap: balance }
+h2 { font-family: var(--display); font-weight: 600; font-size: 20px; margin: 0; letter-spacing: .02em }
+.sub { color: var(--muted); font-size: 13px }
+.num { font-variant-numeric: tabular-nums }
+.mono { font-family: var(--mono); font-size: 12px }
+button, select { font: inherit; color: inherit; cursor: pointer }
+button:focus-visible, select:focus-visible, [tabindex]:focus-visible, path:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+header { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justify-content: space-between }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface) }
+.seg button { border: 0; background: none; padding: 7px 14px; font-weight: 500; color: var(--muted) }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+.seg button:disabled { opacity: .35; cursor: default }
+.ghost { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; text-decoration: none }
+.ghost:disabled { opacity: .45; cursor: default }
+.ghost[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+select { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 10px }
+label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted) }
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.stat { background: var(--surface); padding: 12px 16px; display: grid; gap: 2px; min-width: 0 }
+.stat .k { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted) }
+.stat .v { font-family: var(--display); font-size: 34px; font-weight: 700; line-height: 1.05 }
+.stat .d { font-size: 12px; color: var(--muted) }
+.pbar2 { height: 6px; border-radius: 3px; background: var(--rep); overflow: hidden; margin-top: 4px }
+.pbar2 i { display: block; height: 100%; background: var(--dem) }
+.dem { color: var(--dem) } .rep { color: var(--rep) }
+.locks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 30px }
+.chip { display: inline-flex; gap: 6px; align-items: center; border-radius: 999px; padding: 3px 6px 3px 10px; font-weight: 600; font-size: 12px; color: #fff; border: 0 }
+.chip.D { background: var(--dem) } .chip.R { background: var(--rep) }
+.chip span { opacity: .8; font-weight: 400 }
+.warn { color: var(--rep); font-weight: 500 }
+.main { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 18px }
+@media (max-width: 900px) { .main { grid-template-columns: minmax(0, 1fr) } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; display: grid; gap: 10px; align-content: start }
+.panel-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap }
+#map { width: 100%; height: auto; display: block }
+#map path { stroke: var(--surface); stroke-width: .8; transition: fill .25s }
+#map path.race { cursor: pointer }
+#map path.race:hover { stroke: var(--ink); stroke-width: 1.6 }
+#map path.locked { stroke: var(--ink); stroke-width: 2 }
+#map text { font-family: var(--display); font-weight: 600; pointer-events: none; text-anchor: middle }
+#map .lbl { font-size: 12px } #map .pct { font-size: 10.5px; font-weight: 500 }
+#map .callout rect { cursor: pointer; stroke: var(--surface); stroke-width: .8 }
+#map .callout rect.locked { stroke: var(--ink); stroke-width: 2 }
+#map .lead { stroke: var(--muted); stroke-width: .6 }
+.legend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); flex-wrap: wrap }
+.ramp { width: 160px; height: 10px; border-radius: 2px }
+@media (prefers-reduced-motion: reduce) { #map path { transition: none } }
+#hist { width: 100%; height: auto; display: block }
+#hist text { font-family: var(--mono); font-size: 10px; fill: var(--muted) }
+#hist rect.hbar { transition: opacity .15s }
+#hist rect.hbar.sel { opacity: 1 !important; stroke: var(--ink); stroke-width: 2 }
+#hist .hit { cursor: pointer }
+#hist .hit:hover + rect, #hist .hit:focus-visible { outline: none }
+.scen { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 14px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: color-mix(in oklab, var(--surface) 90%, var(--ink)) }
+.scen b { font-weight: 600 }
+.scen-b { display: flex; gap: 8px; flex-wrap: wrap }
+.ctx { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px }
+.ctx .stat { padding: 8px 0; background: none }
+.ctx .v { font-size: 26px }
+.tl { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 14px }
+@media (max-width: 900px) { .tl { grid-template-columns: minmax(0, 1fr) } }
+.tl h3 { margin: 0 0 4px; font: 600 13px var(--body); color: var(--muted) }
+.tl svg { width: 100%; height: auto; display: block; cursor: pointer }
+.tl svg text { font-family: var(--mono); font-size: 10px; fill: var(--muted) }
+.key { display: inline-flex; gap: 6px; align-items: center }
+.sw { width: 12px; height: 3px; border-radius: 2px; display: inline-block }
+.tbl-wrap { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; min-width: 860px }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; cursor: pointer; user-select: none }
+th.r, td.r { text-align: right }
+td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; font-variant-numeric: tabular-nums }
+tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)) }
+.st { font-family: var(--display); font-weight: 700; font-size: 17px; width: 46px }
+.cands { min-width: 220px }
+.pcell { width: 160px }
+.pbar { position: relative; height: 18px; border-radius: 3px; background: var(--rep); overflow: hidden }
+.pbar i { position: absolute; inset: 0 auto 0 0; background: var(--dem) }
+.pbar b { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 6px; font-size: 11px; color: #fff; font-weight: 600 }
+.delta { font-size: 11px; color: var(--muted); white-space: nowrap }
+.pick { display: inline-flex; gap: 4px }
+.pick button { width: 28px; height: 26px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; font-size: 12px }
+.pick button.D[aria-pressed="true"] { background: var(--dem); border-color: var(--dem); color: #fff }
+.pick button.R[aria-pressed="true"] { background: var(--rep); border-color: var(--rep); color: #fff }
+.exp { border: 0; background: none; color: var(--muted); padding: 2px 6px; font-size: 12px; white-space: nowrap }
+.detail td { background: color-mix(in oklab, var(--surface) 94%, var(--ink)); padding: 10px 14px 14px }
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px }
+@media (max-width: 800px) { .detail-grid { grid-template-columns: minmax(0, 1fr) } }
+.polls { width: 100%; min-width: 620px }
+.polls td, .polls th { padding: 4px 6px; font-size: 12px; cursor: default }
+.wbar { display: inline-block; height: 8px; background: var(--muted); border-radius: 2px; vertical-align: middle; opacity: .7 }
+.tag { font-size: 10px; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; color: var(--muted); margin-left: 4px }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; align-content: start }
+.drv { grid-column: 1 / -1; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px }
+.drv h4 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted) }
+.drv-row { display: grid; grid-template-columns: minmax(0, 1fr) 84px 44px; gap: 6px; align-items: center; font-size: 12px; padding: 2px 0 }
+.drv-row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.drv-bar { position: relative; height: 8px; background: var(--nodata); border-radius: 2px }
+.drv-bar::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted) }
+.drv-bar i { position: absolute; top: 0; bottom: 0; border-radius: 2px }
+.drv-row .v { text-align: right; font-variant-numeric: tabular-nums }
+.drv-tot { font-weight: 600; border-top: 1px solid var(--line); margin-top: 3px; padding-top: 4px }
+.drv .note { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.35 }
+.kv dt { color: var(--muted) } .kv dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums }
+.notes { color: var(--muted); font-size: 12px; max-width: 80ch; display: grid; gap: 4px }
+/* voting records in race details (not used by the forecast) */
+.rec { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 10px }
+.rec h4 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted) }
+.rec-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) 260px; gap: 18px; align-items: start }
+@media (max-width: 1000px) { .rec-grid { grid-template-columns: minmax(0, 1fr) } }
+.rec table { min-width: 0; width: 100% }
+.rec td, .rec th { padding: 3px 6px; font-size: 12px; cursor: default; white-space: normal }
+.rec th { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600 }
+.rec td .u { color: var(--muted); font-size: 11px; display: block }
+.iss { display: grid; gap: 7px }
+.iss-row { display: grid; grid-template-columns: 128px minmax(0, 1fr) 92px; gap: 8px; align-items: center; font-size: 12px }
+.iss-row .lab { line-height: 1.15 }
+.iss-row .lab small { display: block; color: var(--muted); font-size: 10.5px }
+.trk { position: relative; height: 18px }
+.trk::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--line); border-radius: 1px }
+.trk::after { content: ""; position: absolute; left: 50%; top: 4px; height: 10px; width: 1px; background: var(--muted); opacity: .6 }
+.trk i { position: absolute; top: 9px; transform: translate(-50%, -50%); display: block }
+.trk .mv { width: 10px; height: 10px; background: var(--muted); transform: translate(-50%, -50%) rotate(45deg); border: 2px solid var(--surface) }
+.trk .mp { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; background: var(--surface) }
+.trk .mc { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--surface) }
+.trk .D.mp { border-color: var(--dem) } .trk .R.mp { border-color: var(--rep) }
+.trk .D.mc { background: var(--dem) } .trk .R.mc { background: var(--rep) }
+.iss-row .gap { font-size: 11px; color: var(--muted); text-align: right; line-height: 1.2 }
+.iss-ends { display: grid; grid-template-columns: 128px minmax(0, 1fr) 92px; gap: 8px; font-size: 10.5px; color: var(--muted) }
+.iss-ends span:nth-child(2) { display: flex; justify-content: space-between }
+.rec-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11px; color: var(--muted); align-items: center }
+.rec-legend .trk { width: 14px; height: 14px; display: inline-block }
+.rec-legend .trk::before, .rec-legend .trk::after { display: none }
+.rec-legend .trk i { top: 7px; left: 7px }
+.loading { opacity: .5; pointer-events: none }
+.res-ok { color: var(--muted) }
+.dgrid { display: flex; flex-wrap: wrap; gap: 10px 16px; align-content: flex-start; min-height: 120px }
+.dg-state { display: flex; align-items: flex-start; gap: 6px }
+.dg-st { font-family: var(--display); font-weight: 700; font-size: 15px; width: 26px; padding-top: 6px }
+.dg-tiles { display: flex; flex-wrap: wrap; gap: 3px; max-width: 290px }
+.dtile { width: 46px; height: 36px; border-radius: 5px; border: 0; font: 600 11px/1.05 var(--display); display: grid; place-items: center; padding: 0 }
+.dtile b { font-size: 13px; font-weight: 700 }
+.dtile.locked { outline: 2px solid var(--ink); outline-offset: 1px }
+.act { color: var(--ink); font-weight: 600 }
+/* Phones: the race table becomes one card per race, poll lists scroll in their own box, two summary tiles per row,
+   bigger map labels and touch targets. */
+@media (max-width: 640px) {
+  .wrap { gap: 14px; padding-block: 14px 36px }
+  h1 { font-size: 28px }
+  header { align-items: stretch }
+  .controls { width: 100% }
+  .controls label.sel { flex: 1 1 140px } .controls select { width: 100% }
+  .controls .seg { flex: 1 1 100% } .controls .seg button { flex: 1; padding: 9px 6px }
+  .controls .ghost { padding: 9px 12px }
+  .strip { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .stat { padding: 10px 12px }
+  .stat .v { font-size: 26px }
+  .panel { padding: 12px }
+  #map .pct { display: none }
+  #map .lbl { font-size: 19px }
+  .ramp { width: 96px }
+  .tbl-wrap { overflow-x: visible }
+  #tbl { min-width: 0 }
+  #tbl thead { display: none }
+  #tbl, #tbl tbody { display: block }
+  #tbl tr.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; padding: 12px 0;
+    border-bottom: 1px solid var(--line); grid-template-areas: "st st pick" "cands cands cands" "p p p" }
+  #tbl tr.row td { display: block; border: 0; padding: 0; text-align: left; min-width: 0 }
+  #tbl tr.row td[data-l]::before { content: attr(data-l); display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500 }
+  #tbl .st { grid-area: st; width: auto; font-size: 20px }
+  #tbl .cands { grid-area: cands; min-width: 0 }
+  #tbl .c-p { grid-area: p; width: auto }
+  #tbl .c-pick { grid-area: pick; justify-self: end }
+  #tbl .c-money { grid-column: 1 / -1 }
+  #tbl .c-exp { grid-column: 1 / -1 }
+  #tbl .c-exp .exp { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px }
+  .pick button { width: 40px; height: 34px; font-size: 14px }
+  #tbl tr.detail, #tbl tr.detail td { display: block; padding: 10px 0 }
+  .detail td { overflow-x: auto; -webkit-overflow-scrolling: touch }
+  .polls { min-width: 540px }
+  .iss-row, .iss-ends { grid-template-columns: 96px minmax(0, 1fr) 72px }
+  .dtile { width: 42px; height: 36px }
+  .dg-tiles { max-width: 100% }
+}
+</style>
+
+<div class="wrap" id="app">
+  <header>
+    <div>
+      <h1 id="title">2026 Senate</h1>
+      <div class="sub" id="asof"></div>
+      <div class="sub"><a href="map.html" style="color:inherit">Map of forecast components by state →</a></div>
+    </div>
+    <div class="controls">
+      <label class="sel" for="sel-year">Election <select id="sel-year"></select></label>
+      <label class="sel" for="sel-date">Date <select id="sel-date"></select></label>
+      <div class="seg" role="group" aria-label="Race">
+        <button id="v-sen" data-view="sen" aria-pressed="true">Senate</button>
+        <button id="v-house" data-view="house" aria-pressed="false">House</button>
+        <button id="v-pres" data-view="pres" aria-pressed="false">President</button>
+      </div>
+      <div class="seg" role="group" aria-label="Model">
+        <button id="m-fundamentals" data-mode="fundamentals" aria-pressed="false">Fundamentals</button>
+        <button id="m-polls" data-mode="polls" aria-pressed="false">Polls</button>
+        <button id="m-combined" data-mode="combined" aria-pressed="true">Both</button>
+      </div>
+      <button class="ghost" id="result" aria-pressed="false" hidden>Show what happened</button>
+      <button class="ghost" id="reset" disabled>Clear picks</button>
+    </div>
+  </header>
+
+  <section class="strip" aria-live="polite" id="strip"></section>
+  <div class="locks" id="locks"></div>
+
+  <div class="main">
+    <section class="panel">
+      <div class="panel-h">
+        <h2 id="map-h">Click a state to call it</h2>
+        <span class="sub">1st click Democratic · 2nd Republican · 3rd clears</span>
+      </div>
+      <div class="scen" id="scen" hidden>
+        <div id="scen-t"></div>
+        <div class="scen-b"><button class="ghost" id="scen-next">Another from this bar</button><button class="ghost" id="scen-back">Back to odds</button></div>
+      </div>
+      <svg id="map" role="img" aria-label="Map of races colored by chance of a Democratic win"></svg>
+      <div class="dgrid" id="dgrid" hidden></div>
+      <div class="legend" id="map-legend">
+        <span>R win certain</span><span class="ramp" id="ramp"></span><span>D win certain</span>
+        <span style="margin-left:10px">Grey: no race · thick outline: your pick · (I) independent in the Democratic lane</span>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-h"><h2 id="hist-h">Senate seats</h2><span class="sub" id="hist-n"></span></div>
+      <svg id="hist" viewBox="0 0 320 170" role="img" aria-label="Distribution of outcomes"></svg>
+      <div class="sub" id="hist-note"></div>
+      <h2 style="margin-top:6px">National environment</h2>
+      <div class="ctx">
+        <div class="stat"><span class="k" id="gen-k">Generic ballot (polls)</span><span class="v num" id="gen"></span><span class="d" id="gen-d"></span></div>
+        <div class="stat"><span class="k" id="env-k">Forecast environment</span><span class="v num" id="env"></span><span class="d" id="env-d"></span></div>
+        <div class="stat"><span class="k">Presidential net approval</span><span class="v num" id="appr"></span><span class="d" id="appr-d"></span></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-h"><h2>Over the campaign</h2><span class="sub">Click a chart to jump to the nearest date with simulations.</span></div>
+    <div class="tl">
+      <div><h3>Chance of Democratic win (<span id="tl-mode"></span>)</h3><svg id="tl-odds" role="img" aria-label="Chances over time"></svg>
+        <div class="legend" id="tl-legend"></div></div>
+      <div><h3 id="tl-gen-h">Generic ballot average (D − R)</h3><svg id="tl-gen" role="img" aria-label="Generic ballot over time"></svg></div>
+      <div><h3>Presidential net approval</h3><svg id="tl-appr" role="img" aria-label="Net approval over time"></svg></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h">
+      <h2 id="tbl-h">Races</h2>
+      <span class="sub">Chances and margins update with your picks.<span id="tbl-polls-note"> Open a row to see every poll in its average.</span></span>
+    </div>
+    <div class="tbl-wrap">
+      <table id="tbl">
+        <thead><tr id="tbl-head"></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="notes">
+    <div>Every number comes from simulated elections: 10,000 for the latest 2026 day, 2,000 for earlier dates and past elections. A pick keeps only the simulations where that race went your way, so every other race, the seat totals and the House move with it. Senate and presidential picks combine.</div>
+    <div>Past elections show what the model would have said on that date using only information available then: polls released by that day and model settings fit on earlier cycles.</div>
+    <div>Poll average: weighted by recency, sample size, likely-voter screen and pollster reliability from earlier cycles, after removing house effects (each pollster's historical lean, updated with how its polls compare with other pollsters' this cycle) and moving registered-voter polls to a likely-voter basis; stale polls are shifted by how much the national environment has moved since. Independents running in the Democratic lane count as Democratic seats.</div>
+  </div>
+</div>
+
+<script src="forecast_data.js"></script>
+<script src="candidates_2026.js"></script>
+<script>
+(() => {
+const F = window.FORECAST;
+const $ = id => document.getElementById(id);
+const SVGNS = "http://www.w3.org/2000/svg";
+const HIST = {};
+window.__HIST__ = (year, body) => { HIST[year] = body; };
+const HIST_HOUSE = {};
+window.__HIST_HOUSE__ = (year, body) => { HIST_HOUSE[year] = body; };
+
+function decode(b64, Ctor) {
+  if (!b64) return null;
+  const bin = atob(b64), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return new Ctor(u.buffer);
+}
+const moneyTot = r => { const hasOut = r.dem_out != null || r.rep_out != null, d = (r.dem_money || 0) + (r.dem_out || 0), R = (r.rep_money || 0) + (r.rep_out || 0); return { d, r: R, all: d + R, hasOut }; };
+function moneyCell(r) {
+  const t = moneyTot(r);
+  const ratio = (a, e) => e ? ` <span title="actual / expected">(${(a / e).toFixed(1)}×)</span>` : "";
+  const cand = (r.dem_money || 0) + (r.rep_money || 0);
+  const split = t.hasOut ? `<div class="delta" title="Candidate committees' receipts · outside spending (super PACs, party committees, groups: supporting a side's nominee or opposing the other). Expected = what a race of this size and how close it looks usually has by this date.">candidates <span class="dem">${fmtUSD(r.dem_money)}</span> · <span class="rep">${fmtUSD(r.rep_money)}</span>${r.exp_cand ? ` · exp ${fmtUSD(r.exp_cand)}${ratio(cand, r.exp_cand)}` : ""}<br>outside <span class="dem">${fmtUSD(r.dem_out)}</span> · <span class="rep">${fmtUSD(r.rep_out)}</span></div>` : "";
+  const exp = r.exp_money ? `<div class="delta" title="Total money (candidates + outside) a race of this size and how close it looks usually has by this date">total expected ${fmtUSD(r.exp_money)}${ratio(t.all, r.exp_money)}</div>` : "";
+  return `<td class="r c-money" data-l="Money (D · R)"><span class="dem">${fmtUSD(t.d)}</span> · <span class="rep">${fmtUSD(t.r)}</span>${split}${exp}</td>`;
+}
+const fmtUSD = v => v == null ? "–" : v >= 1e9 ? "$" + (v / 1e9).toFixed(1) + "B" : v >= 1e6 ? "$" + (v / 1e6).toFixed(v >= 1e7 ? 0 : 1) + "M" : v >= 1e3 ? "$" + Math.round(v / 1e3) + "K" : "$" + Math.round(v);
+const fmtM = m => m == null || Number.isNaN(m) ? "–" : (Math.abs(m) < 0.05 ? "Even" : (m > 0 ? "D+" : "R+") + Math.abs(m).toFixed(1));
+const pct = p => p == null || Number.isNaN(p) ? "–" : p >= 0.995 ? ">99%" : p <= 0.005 ? "<1%" : Math.round(p * 100) + "%";
+const fill = p => { const t = Math.abs(p - 0.5) * 2, w = Math.round(Math.pow(t, 0.8) * 92); return `color-mix(in oklab, ${p >= 0.5 ? "var(--dem)" : "var(--rep)"} ${w}%, var(--tossup))`; };
+const marginFill = v => { const w = Math.round(38 + Math.min(Math.abs(v), 25) / 25 * 54); return `color-mix(in oklab, ${v > 0 ? "var(--dem)" : "var(--rep)"} ${w}%, var(--tossup))`; };
+$("ramp").style.background = `linear-gradient(90deg, ${[0, .1, .25, .4, .5, .6, .75, .9, 1].map(fill).join(",")})`;
+
+// ---------- state
+let DS = null;            // current dataset
+let year = F.live.year, date = F.live.asof;
+let view = "sen", mode = "combined";
+let sortKey = "p", sortDir = -1;
+let showResult = false;
+let scenario = null;
+const picks = {};         // "view:state" -> "D" | "R"
+const open = new Set();
+try { const m = localStorage.getItem("senx-mode"); if (["fundamentals", "polls", "combined"].includes(m)) mode = m; } catch (e) {}
+
+// ---------- decoding per dataset/mode
+function prep(ds) {
+  if (ds._prep) return ds;
+  ds._prep = {};
+  for (const [m, d] of Object.entries(ds.modes)) {
+    if (d.static) { ds._prep[m] = { agg: d.agg, static: d.static, stats: {} }; continue; }   // past election: summaries only
+    const o = { agg: d.agg, nat: decode(d.nat_env, Int8Array), natp: decode(d.nat_pres, Int8Array), htot: decode(d.house_tot, Uint16Array), stats: {} };
+    for (const v of ["sen", "pres", "house"]) if (d[v]) { o[v] = decode(d[v], Int8Array); o.stats[v] = d[v + "_stats"]; }
+    if (d.house_states) o.hs = decode(d.house_states, Uint8Array);
+    ds._prep[m] = o;
+  }
+  ds._idx = {};
+  for (const v of Object.keys(ds.views)) { ds._idx[v] = {}; ds.views[v].forEach((r, i) => ds._idx[v][r.label || (r.state + (r.special ? "-S" : ""))] = i); }
+  return ds;
+}
+const views = () => Object.keys(DS.views);
+const raceKey = r => r.label || (r.state + (r.special ? "-S" : ""));
+
+// ---------- core computation
+function compute(usePicks = true) {
+  const m = DS._prep[mode], N = DS.n_sims;
+  if (m.static) { const s = m.static; return { n: N, keep: null, static: true, view: s.view, sen: s.sen || null, house: s.house || null, pres: s.pres || null, env: s.env || null,
+    hist: { senSeats: s.hist_sen, houseSeats: s.hist_house, ev: s.hist_ev } }; }
+  const keep = new Uint8Array(N).fill(1);
+  if (usePicks) for (const [key, side] of Object.entries(picks)) {
+    const [v, rk] = key.split(":"); const i = DS._idx[v] && DS._idx[v][rk];
+    if (i == null || !m[v]) continue;
+    const off = i * N, arr = m[v];
+    for (let j = 0; j < N; j++) if (keep[j]) { const x = arr[off + j]; if (side === "D" ? x <= 0 : x > 0) keep[j] = 0; }
+  }
+  let n = 0; for (let j = 0; j < N; j++) n += keep[j];
+  const out = { n, keep, view: {} };
+  // per-sim totals
+  const presArr = m.pres, presRaces = DS.views.pres || [];
+  const ev = new Int16Array(N), senSeats = new Int16Array(N);
+  if (presArr) for (let i = 0; i < presRaces.length; i++) { const e = presRaces[i].ev, off = i * N; for (let j = 0; j < N; j++) if (presArr[off + j] > 0) ev[j] += e; }
+  if (m.sen) { const R = DS.views.sen.length; for (let j = 0; j < N; j++) { let s = DS.sen_holdover_dem; for (let i = 0; i < R; i++) if (m.sen[i * N + j] > 0) s++; senSeats[j] = s; } }
+  out.ev = ev; out.senSeats = senSeats; out.houseSeats = m.htot || new Uint16Array(N);
+  let sc = 0, hc = 0, pc = 0, ss = 0, hsum = 0, esum = 0;
+  const sh = [], hh = [], eh = [], envs = [];
+  for (let j = 0; j < N; j++) {
+    if (!keep[j]) continue;
+    const s = senSeats[j], vpD = presArr ? ev[j] >= 270 : DS.vp_party === "D";
+    if (m.sen) { ss += s; sh.push(s); if (s >= 51 || (s === 50 && vpD)) sc++; }
+    if (m.htot) { const h = m.htot[j]; hsum += h; hh.push(h); if (h >= 218) hc++; }
+    if (presArr) { esum += ev[j]; eh.push(ev[j]); if (ev[j] >= 270) pc++; }
+    const envArr = m.natp || m.nat;
+    if (envArr) envs.push(envArr[j] / 4);
+  }
+  const qs = (a, p) => { if (!a.length) return null; a.sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(p * (a.length - 1)))]; };
+  out.sen = m.sen ? { p: sc / n, mean: ss / n, lo: qs(sh, .05), hi: qs(sh, .95) } : null;
+  out.house = m.htot ? { p: hc / n, mean: hsum / n, lo: qs(hh, .05), hi: qs(hh, .95) } : null;
+  out.pres = presArr ? { p: pc / n, mean: esum / n, lo: qs(eh, .05), hi: qs(eh, .95) } : null;
+  out.env = envs.length ? { mean: envs.reduce((a, b) => a + b, 0) / envs.length, lo: qs(envs, .05), hi: qs(envs, .95) } : null;
+  for (const v of views()) {
+    const arr = m[v], R = DS.views[v].length, w = new Float64Array(R), s = new Float64Array(R);
+    for (let j = 0; j < N; j++) { if (!keep[j]) continue; for (let i = 0; i < R; i++) { const x = arr[i * N + j]; s[i] += x; if (x > 0) w[i]++; } }
+    out.view[v] = { p: Array.from(w, x => x / n), mean: Array.from(s, x => x / n / 2) };
+  }
+  if (m.hs) {
+    const S = DS.house_states.length, hs = new Float64Array(S);
+    for (let j = 0; j < N; j++) if (keep[j]) for (let k = 0; k < S; k++) hs[k] += m.hs[k * N + j];
+    out.houseState = Object.fromEntries(DS.house_states.map((st, k) => [st, hs[k] / n]));
+  }
+  return out;
+}
+let baseC = null;
+const base = () => baseC || (baseC = compute(false));
+
+// ---------- map
+const map = $("map");
+const [VW, VH] = F.viewbox;
+map.setAttribute("viewBox", `0 0 ${VW + 90} ${VH}`);
+const shapes = {};
+for (const st of Object.keys(F.geo).filter(k => !k.endsWith("_c"))) {
+  const p = document.createElementNS(SVGNS, "path");
+  p.setAttribute("d", F.geo[st]); p.setAttribute("fill", "var(--nodata)");
+  p.appendChild(document.createElementNS(SVGNS, "title"));
+  p.addEventListener("click", () => { if (p.classList.contains("race")) cycle(p.dataset.key); });
+  p.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && p.classList.contains("race")) { e.preventDefault(); cycle(p.dataset.key); } });
+  map.appendChild(p); shapes[st] = p;
+}
+const overlay = document.createElementNS(SVGNS, "g"); map.appendChild(overlay);
+const CALLOUT = { sen: ["NH", "MA", "RI", "NJ", "DE"], pres: ["VT", "NH", "MA", "RI", "CT", "NJ", "DE", "MD", "DC"] };
+let mapItems = {};       // raceKey -> {shape, label:{a,b} | callout:{r,tx}}
+
+function buildMapLayer() {
+  const isHouse = view === "house";
+  $("map").hidden = isHouse; $("dgrid").hidden = !isHouse; $("map-legend").hidden = isHouse;
+  overlay.innerHTML = "";
+  if (isHouse) { buildGrid(); return; }
+  mapItems = {};
+  for (const p of Object.values(shapes)) { p.classList.remove("race", "locked"); p.removeAttribute("tabindex"); p.removeAttribute("role"); p.setAttribute("fill", "var(--nodata)"); p.querySelector("title").textContent = ""; }
+  const rows = DS.views[view];
+  const byState = {};
+  rows.forEach(r => { (byState[r.state] = byState[r.state] || []).push(r); });
+  const co = CALLOUT[view].filter(s => byState[s]);
+  let cy = 120;
+  for (const st of co) {
+    if (!F.geo[st + "_c"]) continue;
+    const [x, y] = F.geo[st + "_c"];
+    const by = Math.max(cy, y - 10); cy = by + 26;
+    const g = document.createElementNS(SVGNS, "g"); g.classList.add("callout");
+    const ln = document.createElementNS(SVGNS, "line");
+    Object.entries({ x1: x, y1: y, x2: VW + 6, y2: by + 10, class: "lead" }).forEach(([k, v]) => ln.setAttribute(k, v));
+    const r = document.createElementNS(SVGNS, "rect");
+    Object.entries({ x: VW + 6, y: by, width: 80, height: 21, rx: 3, tabindex: 0, role: "button" }).forEach(([k, v]) => r.setAttribute(k, v));
+    const key = raceKey(byState[st][0]);
+    r.addEventListener("click", () => cycle(key));
+    r.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cycle(key); } });
+    r.appendChild(document.createElementNS(SVGNS, "title"));
+    const tx = document.createElementNS(SVGNS, "text"); tx.setAttribute("x", VW + 46); tx.setAttribute("y", by + 15); tx.classList.add("lbl");
+    g.append(ln, r, tx); overlay.appendChild(g);
+    mapItems[key] = { callout: { r, tx } };
+  }
+  for (const [st, list] of Object.entries(byState)) {
+    const r0 = list.find(r => !r.special) || list[0];     // map shows the regular race; the special is in the table
+    const key = raceKey(r0);
+    const p = shapes[st]; if (!p) continue;
+    p.classList.add("race"); p.setAttribute("tabindex", "0"); p.setAttribute("role", "button"); p.dataset.key = key;
+    mapItems[key] = mapItems[key] || {};
+    mapItems[key].shape = p;
+    if (!mapItems[key].callout && F.geo[st + "_c"]) {
+      const [x, y] = F.geo[st + "_c"];
+      const a = document.createElementNS(SVGNS, "text"); a.setAttribute("x", x); a.setAttribute("y", y - 1); a.classList.add("lbl");
+      const b = document.createElementNS(SVGNS, "text"); b.setAttribute("x", x); b.setAttribute("y", y + 11); b.classList.add("pct");
+      overlay.append(a, b); mapItems[key].label = { a, b };
+    }
+  }
+}
+const inkOn = p => (Math.abs(p - 0.5) > 0.3 ? "#fff" : "var(--ink)");
+let gridTiles = {};
+function buildGrid() {
+  const g = $("dgrid"); g.innerHTML = ""; gridTiles = {};
+  const rows = DS.views.house || [];
+  if (!rows.length) { g.innerHTML = '<span class="sub">No competitive districts on this date.</span>'; return; }
+  const by = {};
+  rows.forEach(r => (by[r.state] = by[r.state] || []).push(r));
+  for (const st of Object.keys(by).sort()) {
+    const box = document.createElement("div"); box.className = "dg-state";
+    box.innerHTML = `<span class="dg-st">${st}</span>`;
+    const tl = document.createElement("div"); tl.className = "dg-tiles";
+    for (const r of by[st]) {
+      const b = document.createElement("button"); b.className = "dtile";
+      b.addEventListener("click", () => cycle(r.label));
+      tl.appendChild(b); gridTiles[r.label] = b;
+    }
+    box.appendChild(tl); g.appendChild(box);
+  }
+}
+function drawGrid(c) {
+  const rows = DS.views.house || [], m = DS._prep[mode], N = DS.n_sims;
+  rows.forEach((r, i) => {
+    const b = gridTiles[r.label]; if (!b) return;
+    const pk = picks["house:" + r.label], p = c.view.house.p[i], mean = c.view.house.mean[i];
+    let f, txt, col, title;
+    if (showResult && r.actual != null) { f = marginFill(r.actual); txt = fmtM(r.actual); col = Math.abs(r.actual) > 8 ? "#fff" : "var(--ink)"; title = `${r.label} result ${fmtM(r.actual)}; forecast ${fmtM(mean)} (${pct(p)} D)`; }
+    else if (scenario) { const v = m.house[i * N + scenario.j] / 2; f = marginFill(v); txt = fmtM(v); col = Math.abs(v) > 8 ? "#fff" : "var(--ink)"; title = `${r.label} in this simulation: ${fmtM(v)}`; }
+    else { f = pk ? (pk === "D" ? "var(--dem)" : "var(--rep)") : c.n ? fill(p) : "var(--tossup)"; txt = pk ? pk + " called" : c.n ? pct(p) : "–"; col = pk ? "#fff" : c.n ? inkOn(p) : "var(--ink)";
+      title = `${r.label}: ${r.dem || "Democrat"} vs ${r.rep || "Republican"}. ${pk ? "Your pick" : pct(p) + " chance of a Democratic win, " + fmtM(mean)}`; }
+    b.style.background = f; b.style.color = col;
+    b.classList.toggle("locked", !!pk && !scenario && !showResult);
+    b.innerHTML = `<b>${r.district ? r.district : "AL"}</b>${txt}`;
+    b.title = title; b.setAttribute("aria-label", title);
+  });
+}
+
+function drawMap(c) {
+  if (view === "house") { drawGrid(c); return; }
+  const rows = DS.views[view], m = DS._prep[mode], N = DS.n_sims;
+  for (const [key, it] of Object.entries(mapItems)) {
+    const i = DS._idx[view][key]; if (i == null) continue;
+    const r = rows[i], pk = picks[view + ":" + key];
+    const p = c.view[view].p[i], mean = c.view[view].mean[i];
+    let f, txt, col, title;
+    if (!r.contested) {
+      f = r.actual != null ? marginFill(r.actual) : "var(--nodata)"; txt = "no contest"; col = "var(--ink)"; title = `${r.state}: uncontested`;
+    } else if (showResult && r.actual != null) {
+      f = marginFill(r.actual); txt = fmtM(r.actual); col = Math.abs(r.actual) > 8 ? "#fff" : "var(--ink)";
+      title = `${r.state} result: ${fmtM(r.actual)}. Forecast ${fmtM(mean)}, ${pct(p)} chance of a Democratic win.`;
+    } else if (scenario) {
+      const sv = m[view][i * N + scenario.j] / 2;
+      f = marginFill(sv); txt = fmtM(sv); col = Math.abs(sv) > 8 ? "#fff" : "var(--ink)";
+      title = `${r.state} in this simulation: ${fmtM(sv)}`;
+    } else {
+      f = pk ? (pk === "D" ? "var(--dem)" : "var(--rep)") : c.n ? fill(p) : "var(--tossup)";
+      txt = pk ? (pk === "D" ? "D called" : "R called") : c.n ? pct(p) : "–";
+      col = pk ? "#fff" : c.n ? inkOn(p) : "var(--ink)";
+      title = `${r.state}: ${r.dem || "Democrat"} vs ${r.rep || "Republican"}. ${pk ? "Your pick: " + (pk === "D" ? "Democratic" : "Republican") : pct(p) + " chance of a Democratic win, " + fmtM(mean)}`;
+    }
+    const name = r.state + (r.dem_ind ? " (I)" : "") + (view === "pres" ? ` ${r.ev}` : "");
+    if (it.shape) { it.shape.setAttribute("fill", f); it.shape.classList.toggle("locked", !!pk && !scenario && !showResult); it.shape.querySelector("title").textContent = title; it.shape.setAttribute("aria-label", title); }
+    if (it.label) { it.label.a.textContent = name; it.label.b.textContent = txt; it.label.a.setAttribute("fill", col); it.label.b.setAttribute("fill", col); }
+    if (it.callout) { it.callout.r.setAttribute("fill", f); it.callout.r.classList.toggle("locked", !!pk); it.callout.tx.textContent = `${r.state} ${txt}`; it.callout.tx.setAttribute("fill", col); it.callout.r.querySelector("title").textContent = title; }
+  }
+}
+
+// ---------- histogram
+function histSpec() {
+  if (view === "house") return { lo: 180, hi: 260, step: 2, thr: 218, label: "Democratic House seats", key: "houseSeats", ctlTxt: "218 = control" };
+  return view === "pres" ? { lo: 150, hi: 400, step: 10, thr: 270, label: "Democratic electoral votes", key: "ev", ctlTxt: "270 = win" }
+    : { lo: 40, hi: 62, step: 1, thr: 51, label: "Democratic Senate seats", key: "senSeats", ctlTxt: "51 = control" };
+}
+function drawHist(c) {
+  const h = $("hist"); h.innerHTML = "";
+  const sp = histSpec(), vals = c[sp.key], N = DS.n_sims;
+  const bins = []; for (let b = sp.lo; b <= sp.hi; b += sp.step) bins.push(b);
+  const cnt = new Float64Array(bins.length);
+  const binOf = v => Math.max(0, Math.min(bins.length - 1, Math.floor((v - sp.lo) / sp.step)));
+  if (c.static) { const hc = c.hist[sp.key] || []; hc.forEach((k, v) => { if (k) cnt[binOf(v)] += k; }); }
+  else for (let j = 0; j < N; j++) if (c.keep[j]) cnt[binOf(vals[j])]++;
+  const W = 320, H = 170, pad = 22, bw = (W - 12) / bins.length;
+  const mx = Math.max(...cnt, 1);
+  const add = (tag, attrs, text) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; h.appendChild(e); return e; };
+  add("line", { x1: 6, x2: W - 6, y1: H - pad, y2: H - pad, stroke: "var(--line)" });
+  const xc = b => 6 + binOf(b) * bw;
+  add("line", { x1: xc(sp.thr), x2: xc(sp.thr), y1: 8, y2: H - pad, stroke: "var(--muted)", "stroke-dasharray": "2 3" });
+  add("text", { x: xc(sp.thr) + 3, y: 16 }, sp.ctlTxt);
+  const actualVal = actualTotal();
+  bins.forEach((b, k) => {
+    const v = cnt[k] / (c.n || 1), bh = (H - pad - 24) * cnt[k] / mx;
+    const dem = sp.key === "senSeats" ? (b >= 51 || (b === 50 && DS.vp_party === "D")) : b >= sp.thr;
+    const sel = scenario && scenario.bin === k;
+    const bar = add("rect", { x: 6 + k * bw + 1, y: H - pad - bh, width: Math.max(bw - 2, 1), height: Math.max(bh, 0), fill: dem ? "var(--dem)" : "var(--rep)", opacity: scenario && !sel ? .45 : .85, class: "hbar" + (sel ? " sel" : "") });
+    const lab = sp.step === 1 ? `${k === 0 ? "≤" : k === bins.length - 1 ? "≥" : ""}${b}` : `${k === 0 ? "≤" : ""}${b}–${b + sp.step - 1}${k === bins.length - 1 ? "+" : ""}`;
+    const hit = add("rect", { x: 6 + k * bw, y: 8, width: bw, height: H - pad - 8, fill: "transparent", class: cnt[k] ? "hit" : "", tabindex: cnt[k] ? 0 : -1, role: "button" });
+    const t = document.createElementNS(SVGNS, "title"); t.textContent = `${lab} ${sp.label.toLowerCase()}: ${(v * 100).toFixed(1)}% of simulations.${cnt[k] ? " Click for a random map." : ""}`; hit.appendChild(t);
+    if (cnt[k] && !c.static) {
+      hit.addEventListener("click", () => pickScenario(k));
+      hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pickScenario(k); } });
+    }
+    const every = sp.step === 1 ? 2 : 5;
+    if (k % every === 0) add("text", { x: 6 + k * bw + bw / 2, y: H - 7, "text-anchor": "middle" }, sp.step === 1 ? (k === 0 ? "≤" + b : k === bins.length - 1 ? "≥" + b : b) : b);
+  });
+  if (actualVal != null) {
+    const x = 6 + binOf(actualVal) * bw + bw / 2;
+    add("line", { x1: x, x2: x, y1: 20, y2: H - pad, stroke: "var(--ink)", "stroke-width": 2 });
+    add("text", { x: x + 3, y: 30 }, `actual ${actualVal}`);
+  }
+  $("hist-h").textContent = view === "pres" ? "Electoral votes" : view === "house" ? "House seats" : "Senate seats";
+  $("hist-n").textContent = `${c.n.toLocaleString()} of ${N.toLocaleString()} simulations`;
+  $("hist-note").textContent = `${c.static ? "Past election: odds as forecast on this date (calls and random simulations are in the live forecast only). " : "Click a bar to see a random simulation in it. "}${view === "pres" ? "270 electoral votes wins." : view === "house" ? "218 seats is control; the map shows competitive districts only (3–97% chance on this date)." : "51 seats is control; at 50–50 the vice president's party wins."}${actualVal != null ? " The black line is what happened." : ""}`;
+}
+function actualTotal() {
+  const A = DS.actual_totals;
+  if (A) return view === "pres" ? A.ev : view === "house" ? A.house_seats : A.sen_seats;
+  const rows = DS.views[view];
+  if (rows.some(r => r.actual == null)) return null;
+  if (view === "pres") return rows.reduce((a, r) => a + (r.actual > 0 ? r.ev : 0), 0);
+  return DS.sen_holdover_dem + rows.filter(r => r.actual > 0 || (!r.contested && r.actual > 0)).length;
+}
+function pickScenario(k) {
+  const c = compute(), sp = histSpec(), vals = c[sp.key], N = DS.n_sims, nb = Math.floor((sp.hi - sp.lo) / sp.step) + 1;
+  const binOf = v => Math.max(0, Math.min(nb - 1, Math.floor((v - sp.lo) / sp.step)));
+  const pool = []; for (let j = 0; j < N; j++) if (c.keep[j] && binOf(vals[j]) === k) pool.push(j);
+  if (!pool.length) return;
+  showResult = false;
+  scenario = { j: pool[Math.floor(Math.random() * pool.length)], bin: k, n: pool.length };
+  render();
+  const tgt = view === "house" ? $("dgrid") : $("map");
+  if (tgt && tgt.scrollIntoView) tgt.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+}
+function drawScenario(c) {
+  const box = $("scen");
+  if (!scenario) { box.hidden = true; return; }
+  const m = DS._prep[mode], j = scenario.j, N = DS.n_sims;
+  const flips = [];
+  for (const v of views()) DS.views[v].forEach((r, i) => {
+    if (!r.contested) return;
+    const x = m[v][i * N + j];
+    if ((x > 0) !== (c.view[v].mean[i] > 0)) flips.push(`${v === "pres" ? "Pres " : ""}${r.label || r.state}${r.special ? " (special)" : ""} ${x > 0 ? "D" : "R"}`);
+  });
+  const parts = [];
+  if (m.sen) { const s = c.senSeats[j], vpD = m.pres ? c.ev[j] >= 270 : DS.vp_party === "D"; parts.push(`Senate ${s} D (${s >= 51 || (s === 50 && vpD) ? "D" : "R"} control)`); }
+  if (m.pres) parts.push(`President ${c.ev[j]} D electoral votes`);
+  if (m.htot) parts.push(`House ${m.htot[j]} D seats`);
+  if (m.natp) parts.push(`popular vote <b>${fmtM(m.natp[j] / 4)}</b>`);
+  if (m.nat) parts.push(`House vote ${fmtM(m.nat[j] / 4)}`);
+  box.hidden = false;
+  const shown = flips.slice(0, 14).join(", ") + (flips.length > 14 ? `, and ${flips.length - 14} more` : "");
+  $("scen-t").innerHTML = `<b>Simulation #${j + 1}</b> · ${parts.join(" · ")}<br><span class="sub">One of ${scenario.n.toLocaleString()} simulations in this bar. Went against the forecast: ${flips.length ? shown : "nothing"}.</span>`;
+}
+$("scen-next").onclick = () => { if (scenario) pickScenario(scenario.bin); };
+$("scen-back").onclick = () => { scenario = null; render(); };
+
+// ---------- summary strip, national panel, chips
+function tile(k, v, cls, d, barP) {
+  return `<div class="stat"><span class="k">${k}</span><span class="v num ${cls || ""}">${v}</span><span class="d">${d}</span>${barP != null ? `<div class="pbar2"><i style="width:${barP * 100}%"></i></div>` : ""}</div>`;
+}
+function ctrlTxt(p) { return p == null ? "–" : p >= .5 ? `D ${pct(p)}` : `R ${pct(1 - p)}`; }
+function drawSummary(c, b) {
+  const any = Object.keys(picks).length > 0, was = (x, f) => any && x != null ? ` (was ${f(x)})` : "";
+  const A = DS.actual_totals || null;
+  const act = (txt) => A ? ` · <span class="act">Actual: ${txt}</span>` : "";
+  const tile = (k, v, cls, d, barP) => `<div class="stat"><span class="k">${k}</span><span class="v num ${cls || ""}">${v}</span><span class="d">${d}</span>${barP != null ? `<div class="pbar2"><i style="width:${barP * 100}%"></i></div>` : ""}</div>`;
+  let html = "";
+  if (c.pres) html += tile("Presidency", ctrlTxt(c.pres.p), c.pres.p >= .5 ? "dem" : "rep", `Democrats ${pct(c.pres.p)}${was(b.pres.p, pct)}${A && A.ev != null ? act(`${A.ev >= 270 ? "D" : "R"} won`) : ""}`, c.pres.p)
+    + tile("Democratic electoral votes", c.pres.mean.toFixed(0), "", `90% range ${c.pres.lo}–${c.pres.hi} · 270 to win${was(b.pres.mean, v => v.toFixed(0))}${A && A.ev != null ? act(A.ev) : ""}`);
+  const senCtl = A && A.sen_seats != null ? (A.sen_seats >= 51 || (A.sen_seats === 50 && ((A.ev != null && A.ev >= 270) || (A.ev == null && DS.vp_party === "D"))) ? "D" : "R") : null;
+  if (c.sen) html += tile("Senate control", ctrlTxt(c.sen.p), c.sen.p >= .5 ? "dem" : "rep", `Democrats ${pct(c.sen.p)}${was(b.sen.p, pct)}${senCtl ? act(senCtl + " control") : ""}`, c.sen.p)
+    + tile("Democratic Senate seats", c.sen.mean.toFixed(1), "", `90% range ${c.sen.lo}–${c.sen.hi}${was(b.sen.mean, v => v.toFixed(1))}${A && A.sen_seats != null ? act(A.sen_seats) : ""}`);
+  if (c.house) html += tile("House control", ctrlTxt(c.house.p), c.house.p >= .5 ? "dem" : "rep", `Democrats ${pct(c.house.p)}${was(b.house.p, pct)}${A ? act((A.house_seats >= 218 ? "D" : "R") + " control") : ""}`, c.house.p)
+    + tile("Democratic House seats", c.house.mean.toFixed(0), "", `90% range ${c.house.lo}–${c.house.hi} · 218 for control${was(b.house.mean, v => v.toFixed(0))}${A ? act(A.house_seats) : ""}`);
+  if (!c.n) html = tile("No simulations", "–", "", "No simulation produced this combination. Remove a pick.");
+  $("strip").innerHTML = html;
+  const L = $("locks"); L.innerHTML = "";
+  if (!any) L.innerHTML = `<span class="sub">No picks yet. ${modeName()} model.</span>`;
+  for (const [key, side] of Object.entries(picks)) {
+    const [v, rk] = key.split(":"); const r = DS.views[v][DS._idx[v][rk]];
+    const ch = document.createElement("button"); ch.className = "chip " + side;
+    ch.innerHTML = `${v === "pres" ? "Pres " : ""}${r.label || r.state}${r.special ? " special" : ""} ${side} <span>${(side === "D" ? r.dem : r.rep) || ""}</span> ✕`;
+    ch.setAttribute("aria-label", `Remove pick ${rk}`); ch.onclick = () => setPick(key, null);
+    L.appendChild(ch);
+  }
+  if (any) {
+    const s = document.createElement("span"); s.className = c.n < 100 ? "warn" : "sub";
+    s.textContent = c.n === 0 ? "No simulation produced this combination." : `This combination happens in ${pct(c.n / DS.n_sims)} of simulations (${c.n.toLocaleString()})` + (c.n < 100 ? ". Too few for stable numbers." : ".");
+    L.appendChild(s);
+  }
+  $("reset").disabled = !any;
+}
+const modeName = () => ({ fundamentals: "Fundamentals-only", polls: "Polls-only", combined: "Combined" })[mode];
+function drawNational(c, b) {
+  const isPres = !!DS.pres_poll;
+  const g = (isPres ? DS.pres_poll : DS.generic) || {};
+  $("gen-k").textContent = isPres ? "Popular vote (polls)" : "Generic ballot (polls)";
+  $("gen").textContent = fmtM(g.avg); $("gen").className = "v num " + (g.avg >= 0 ? "dem" : "rep");
+  $("gen-d").textContent = g.n_polls ? `${g.n_polls} ${isPres ? "national presidential" : "generic ballot"} polls` : (isPres ? "no national polls" : "no generic ballot polls");
+  const m = DS._prep[mode];
+  const envArr = m.natp || m.nat, isNatp = m.static ? m.static.natp : !!m.natp;
+  $("env-k").textContent = isNatp ? "Forecast popular vote (President)" : "Forecast national environment";
+  if (scenario && envArr) { const v = envArr[scenario.j] / 4; $("env").textContent = fmtM(v); $("env").className = "v num " + (v >= 0 ? "dem" : "rep"); $("env-d").textContent = `this simulation · forecast ${fmtM(b.env && b.env.mean)}`; }
+  else if (c.env) {
+    $("env").textContent = fmtM(c.env.mean); $("env").className = "v num " + (c.env.mean >= 0 ? "dem" : "rep");
+    const A = DS.actual_totals, av_ = A ? (isNatp ? A.pres_vote : A.house_vote) : null;
+    $("env-d").innerHTML = `${isNatp ? "D − R popular vote" : "House vote"}, 90% ${fmtM(c.env.lo)} to ${fmtM(c.env.hi)}` + (av_ != null ? ` · <span class="act">Actual: ${fmtM(av_)}</span>` : "") + (Object.keys(picks).length && b.env ? ` · was ${fmtM(b.env.mean)}` : "");
+  } else { $("env").textContent = "–"; $("env-d").textContent = ""; }
+  const a = DS.approval_net;
+  $("appr").textContent = a == null ? "–" : (a > 0 ? "+" : "") + a.toFixed(1);
+  $("appr").className = "v num " + (a == null ? "" : a >= 0 ? "dem" : "rep");
+  $("appr-d").textContent = `approve − disapprove, ${DS.asof}`;
+}
+
+// ---------- table
+function drawTable(c, b) {
+  const rows0 = DS.views[view], st = DS._prep[mode].stats[view];
+  const hasPolls = (!!DS.polls && view === "sen") || rows0.some(r => r.fx);
+  const hasMoney = rows0.some(r => r.dem_money != null || r.rep_money != null);
+  const pastResult = rows0.some(r => r.actual != null);
+  $("tbl-head").innerHTML = `<th data-sort="state">State</th><th>Candidates</th>${view === "pres" ? '<th class="r" data-sort="ev">EV</th>' : ""}<th data-sort="p">Chance of D win</th>
+    <th class="r" data-sort="mean">Forecast margin</th><th class="r" data-sort="avg">Poll average</th><th class="r" data-sort="fund">Fundamentals</th>
+    ${pastResult ? '<th class="r" data-sort="actual">Result</th>' : ""}${hasMoney ? '<th class="r" data-sort="money">Money (D · R)</th>' : ""}<th class="r" data-sort="n">Polls</th><th>Call it</th>${hasPolls ? "<th></th>" : ""}`;
+  $("tbl-polls-note").hidden = !hasPolls;
+  document.querySelectorAll("#tbl th[data-sort]").forEach(th => {
+    th.setAttribute("aria-sort", th.dataset.sort === sortKey ? (sortDir > 0 ? "ascending" : "descending") : "none");
+    th.onclick = () => { const k = th.dataset.sort; if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === "state" ? 1 : -1; } render(); };
+  });
+  const rows = rows0.map((r, i) => ({ r, i, p: c.view[view].p[i], mean: c.view[view].mean[i], avg: r.avg, fund: r.fund_mean, n: r.n_polls, state: r.label || r.state, ev: r.ev, actual: r.actual, money: moneyTot(r).all }));
+  rows.sort((x, y) => { const a = x[sortKey], bb = y[sortKey]; if (sortKey === "state") return sortDir * a.localeCompare(bb); const an = a == null || Number.isNaN(a) ? -1e9 : a, bn = bb == null || Number.isNaN(bb) ? -1e9 : bb; return sortDir * (an - bn); });
+  const any = Object.keys(picks).length > 0;
+  const tbody = document.querySelector("#tbl tbody"); tbody.innerHTML = "";
+  for (const { r, i, p, mean } of rows) {
+    const key = view + ":" + raceKey(r), pk = picks[key];
+    const d = any && !pk && c.n ? p - b.view[view].p[i] : 0;
+    const nm = (name, isInc, ind) => `${name || "–"}${ind ? '<span class="tag">I</span>' : ""}${isInc ? '<span class="tag">inc</span>' : ""}`;
+    const tr = document.createElement("tr"); tr.className = "row";
+    const wrong = r.actual != null && r.contested && ((r.actual > 0) !== (b.view[view].p[i] > .5));
+    tr.innerHTML = `
+      <td class="st">${r.label || r.state}${r.special ? '<span class="tag">special</span>' : ""}</td>
+      <td class="cands"><span class="dem">${nm(r.dem, r.dem_inc, r.dem_ind)}</span><br><span class="rep">${nm(r.rep, r.rep_inc)}</span></td>
+      ${view === "pres" ? `<td class="r c-ev" data-l="EV">${r.ev}</td>` : ""}
+      <td class="pcell c-p">${!r.contested ? '<span class="sub">uncontested</span>' : c.n ? `<div class="pbar"><i style="width:${p * 100}%"></i><b><span>${pct(p)}</span><span>${pct(1 - p)}</span></b></div>
+        <div class="delta">${pk ? "your pick" : Math.abs(d) >= 0.005 ? (d > 0 ? "▲ D " : "▼ D ") + Math.abs(d * 100).toFixed(0) + " pts vs. no picks" : "&nbsp;"}</div>` : "–"}</td>
+      <td class="r c-mean ${mean > 0 ? "dem" : "rep"}" data-l="Forecast">${r.contested && c.n ? fmtM(mean) : "–"}<div class="delta">${st && st[i] && st[i].sd ? "± " + st[i].sd.toFixed(1) + " sd" : ""}</div></td>
+      <td class="r c-avg ${r.avg == null ? "" : r.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(r.avg)}${r.und != null ? `<div class="delta">${r.und.toFixed(0)}% undecided</div>` : ""}</td>
+      <td class="r c-fund ${r.fund_mean > 0 ? "dem" : "rep"}" data-l="Fundamentals">${fmtM(r.fund_mean)}</td>
+      ${pastResult ? `<td class="r c-res ${r.actual > 0 ? "dem" : "rep"}" data-l="Result">${fmtM(r.actual)}${wrong ? '<div class="delta">upset</div>' : ""}</td>` : ""}
+      ${hasMoney ? moneyCell(r) : ""}
+      <td class="r c-n" data-l="Polls in average">${r.n_polls}<div class="delta">${r.n_pollsters ? r.n_pollsters + " pollsters" : ""}</div></td>
+      <td class="c-pick">${r.contested ? `<span class="pick"><button class="D" aria-pressed="${pk === "D"}" aria-label="Call ${r.state} for Democrats">D</button><button class="R" aria-pressed="${pk === "R"}" aria-label="Call ${r.state} for Republicans">R</button></span>` : ""}</td>
+      ${hasPolls ? `<td class="c-exp"><button class="exp" aria-expanded="${open.has(key)}">${open.has(key) ? "Hide ▴" : "Details ▾"}</button></td>` : ""}`;
+    const btns = tr.querySelectorAll(".pick button");
+    if (btns.length) { btns[0].onclick = () => setPick(key, pk === "D" ? null : "D"); btns[1].onclick = () => setPick(key, pk === "R" ? null : "R"); }
+    const ex = tr.querySelector(".exp"); if (ex) ex.onclick = () => { open.has(key) ? open.delete(key) : open.add(key); render(); };
+    tbody.appendChild(tr);
+    if (hasPolls && open.has(key)) tbody.appendChild(detailRow(r, i, c, b));
+  }
+}
+function drivers(r, st) {
+  if (!r.fx) return "";
+  const mx = Math.max(...r.fx.map(f => Math.abs(f[1])), 1);
+  const bar = v => { const w = Math.abs(v) / mx * 50; return `<span class="drv-bar"><i style="${v >= 0 ? `left:50%;width:${w}%;background:var(--dem)` : `right:50%;width:${w}%;background:var(--rep)`}"></i></span>`; };
+  const row = (nm, v, cls = "") => `<div class="drv-row ${cls}"><span class="nm" title="${nm}">${nm}</span>${bar(v)}<span class="v ${v > 0 ? "dem" : v < 0 ? "rep" : ""}">${fmtM(v)}</span></div>`;
+  const tot = r.fx.reduce((a, f) => a + f[1], 0);
+  const pollsPct = mode === "fundamentals" ? 0 : Math.round((st.ps || 0) * 100);
+  return `<div class="drv"><h4>What drives the fundamentals</h4>${r.fx.map(f => row(f[0], f[1])).join("")}${row("Fundamentals prior", tot, "drv-tot")}
+    <div class="note">Points of margin each input adds (blue D, red R) in the fundamentals model, which is linear, so these add up to the prior. ${mode === "polls" ? "Polls-only mode ignores them." : `The forecast then blends in polls (${pollsPct}% of the information here) and updates the national environment from every race's polls.`}</div></div>`;
+}
+// voting records and effects measured but not in the forecast (window.CANDIDATES, forecast/export_candidates.py)
+function recordBlock(r) {
+  const CD = window.CANDIDATES, x = CD && DS.year === 2026 ? CD.races[r.race] : null;
+  if (!x) return "";
+  const sides = ["D", "R"].filter(s => x[s]);
+  const nmOf = s => (x[s].name || (s === "D" ? r.dem : r.rep) || s);
+  const pc = v => v == null ? "–" : Math.round(v * 100) + "%";
+  const cell = (s, k, f = pc) => { const c = x[s]; return c[k] == null ? "–" : `${f(c[k])}${c[k + "_exp"] != null ? `<span class="u">usual for seat ${f(c[k + "_exp"])}</span>` : ""}`; };
+  const per100 = v => v.toFixed(1);
+  const statRows = [
+    ["Votes with the other party on party-line votes", "cross", pc],
+    ["Protest votes against both parties", "flank", pc],
+    ["Breaks with party on close symbolic votes", "close_symb", pc],
+    ["Breaks with party on close votes that could change something", "close_cons", pc],
+    ["Defections that decided the outcome, per 100 close votes", "decisive_cons", per100],
+    ["Votes with the president's position", "pres", pc]];
+  const stats = sides.length ? `<table><thead><tr><th></th>${sides.map(s => `<th class="${s === "D" ? "dem" : "rep"}">${nmOf(s)}<span class="u" style="font-weight:400">${x[s].record} record</span></th>`).join("")}</tr></thead><tbody>
+    ${statRows.map(([lab, k, f]) => `<tr><td>${lab}</td>${sides.map(s => `<td class="r">${cell(s, k, f)}</td>`).join("")}</tr>`).join("")}
+    <tr><td>When one vote decides it: broke with party and the party still won / lost</td>${sides.map(s => `<td class="r">${pc(x[s].absorbed)} / ${pc(x[s].costly)}</td>`).join("")}</tr>
+    </tbody></table>` : "";
+  const I = CD.issues, pos = v => ((v + 1) / 2 * 100).toFixed(1) + "%", sg = v => v == null ? "–" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2);
+  const issues = sides.length ? Object.keys(I).map(k => {
+    const [lab, plus, minus] = I[k];
+    const marks = [], gaps = [];
+    const vv = sides.map(s => x[s].issues[k]).find(q => q && q.voters != null);
+    if (vv) marks.push(`<i class="mv" style="left:${pos(vv.voters)}" title="Where voters here put a typical member: ${sg(vv.voters)}"></i>`);
+    for (const s of sides) { const q = x[s].issues[k]; if (q && q.party != null) marks.push(`<i class="mp ${s}" style="left:${pos(q.party)}" title="Typical ${s === "D" ? "Democrat" : "Republican"} from a seat like this: ${sg(q.party)}"></i>`); }
+    for (const s of sides) { const q = x[s].issues[k]; if (q && q.axis != null) { marks.push(`<i class="mc ${s}" style="left:${pos(q.axis)}" title="${nmOf(s)}: ${sg(q.axis)}"></i>`); if (q.voters != null) gaps.push(`<span class="${s === "D" ? "dem" : "rep"}">${s} ${sg(q.axis - q.voters)}</span>`); } }
+    const any = sides.some(s => x[s].issues[k] && x[s].issues[k].axis != null);
+    return `<div class="iss-row"><span class="lab">${lab}<small>− ${minus} · + ${plus}</small></span><span class="trk">${any ? marks.join("") : ""}</span><span class="gap">${any ? (gaps.length ? gaps.join("<br>") + "<br>vs voters" : "no voter data") : "too few votes"}</span></div>`;
+  }).join("") : "";
+  const ef = x.effects || [], E = CD.effects[r.race.includes("-house-") ? "house" : "sen"];
+  const mx = Math.max(...ef.map(e => Math.abs(e[1])), 1);
+  const bar = v => { const w = Math.abs(v) / mx * 50; return `<span class="drv-bar"><i style="${v >= 0 ? `left:50%;width:${w}%;background:var(--dem)` : `right:50%;width:${w}%;background:var(--rep)`}"></i></span>`; };
+  const tot = ef.reduce((a, e) => a + e[1], 0);
+  const effects = ef.length ? `<div class="drv" style="margin-top:0;border-top:0;padding-top:0"><h4>Measured, but not in the forecast</h4>
+    ${ef.map(e => `<div class="drv-row"><span class="nm" title="${e[0]}">${e[0]}</span>${bar(e[1])}<span class="v ${e[1] > 0 ? "dem" : e[1] < 0 ? "rep" : ""}">${fmtM(e[1])}</span></div>`).join("")}
+    ${ef.length > 1 ? `<div class="drv-row drv-tot"><span class="nm">If they were added</span>${bar(tot)}<span class="v ${tot > 0 ? "dem" : tot < 0 ? "rep" : ""}">${fmtM(tot)}</span></div>` : ""}
+    <div class="note">From races 2006–24, against the fundamentals as forecast 90 days out with only earlier cycles. Even with the incumbency bonus now following its downward trend (and drawn once per simulation for every incumbent), running incumbents still fell short of the fundamentals 90 days out (${r.race.includes("-house-") ? "House" : "Senate"} average ${E.inc_short.toFixed(1)} pts of margin; ${Object.entries(E.by_year).map(([y, v]) => `${y} ${v.toFixed(1)}`).join(", ")}); polls close most of the gap by Election Day. ${E.feat === "cross" ? `Senate candidates who vote with the other party more than their seat predicts beat the fundamentals (t ${E.t_feat.toFixed(1)}).` : `House members who cast protest votes against both parties trail them (t ${E.t_feat.toFixed(1)}).`} Neither changes the forecast above.</div></div>` : "";
+  if (!stats && !effects) return "";
+  return `<div class="rec"><h4>Voting records in Congress <span class="sub" style="font-weight:400">· Voteview roll calls, this Congress and the last, through ${CD.asof} · not used in the forecast</span></h4>
+    <div class="rec-grid"><div class="tbl-wrap">${stats || '<p class="sub">Neither candidate has served in Congress.</p>'}</div>
+    <div class="iss">${issues ? `<div class="iss-ends"><span></span><span><span>−1</span><span>+1</span></span><span></span></div>${issues}
+      <div class="rec-legend"><span><span class="trk"><i class="mc D"></i></span><span class="trk"><i class="mc R"></i></span> candidate's votes</span><span><span class="trk"><i class="mp D"></i></span><span class="trk"><i class="mp R"></i></span> typical member of that party from a seat with these voters</span><span><span class="trk"><i class="mv"></i></span> where these voters put a typical member (CES opinion)</span></div>
+      <p class="sub" style="margin:0;font-size:11px">Each issue runs between two groups of exemplar members (e.g. immigration: Padilla, Durbin, Jayapal… vs Cotton, Biggs, Roy…), scored on the votes where they split. Gaps are the candidate minus the voters' position.</p>` : ""}</div>
+    ${effects}</div></div>`;
+}
+function detailRow(r, i, c, b) {
+  const tr = document.createElement("tr"); tr.className = "detail";
+  const ps = (DS.polls || {})[r.race] || [], mx = Math.max(...ps.map(p => p.share), 0.01);
+  const sg = v => v === 0 || v == null ? "–" : (v > 0 ? "+" : "−") + Math.abs(v).toFixed(1);
+  const rowsHtml = ps.map(p => `<tr><td class="mono">${p.end}</td><td>${p.pollster}${p.partisan ? `<span class="tag">${p.partisan[0]}</span>` : ""}</td>
+      <td class="r mono">${p.n ? p.n.toLocaleString() : "–"} ${p.pop}</td><td class="r dem">${p.dem.toFixed(0)}</td><td class="r rep">${p.rep.toFixed(0)}</td>
+      <td class="r">${fmtM(p.raw)}</td><td class="r mono">${sg(-p.he)}</td><td class="r mono">${sg(p.lv)}</td><td class="r mono">${sg(p.tr)}</td><td class="r ${p.adj > 0 ? "dem" : "rep"}">${fmtM(p.adj)}</td>
+      <td><span class="wbar" style="width:${(p.share / mx * 60).toFixed(0)}px"></span> <span class="mono">${(p.share * 100).toFixed(1)}%</span></td></tr>`).join("");
+  const st = DS._prep[mode].stats[view][i], nH = (DS.house_size || {})[r.state] || 0;
+  const hNow = c.houseState ? c.houseState[r.state] : null, hBase = b.houseState ? b.houseState[r.state] : null;
+  tr.innerHTML = `<td colspan="12"><div class="detail-grid"><div class="tbl-wrap">${ps.length ? `<table class="polls"><thead><tr><th>Field date</th><th>Pollster</th><th class="r">Sample</th><th class="r">D</th><th class="r">R</th><th class="r">Margin</th><th class="r" title="Minus the pollster's house effect: its historical lean, updated with how its polls this cycle compare with other pollsters' in the same races">House effect adj.</th><th class="r" title="Registered-voter and all-adult polls moved to a likely-voter basis, by this cycle's gap between the likely- and registered-voter versions of the same polls">LV adj.</th><th class="r" title="Shift for how much the national environment has moved since the poll was fielded">Trend adj.</th><th class="r">Adjusted</th><th>Weight</th></tr></thead><tbody>${rowsHtml}</tbody></table>` : `<p class="sub">No public polls in the last 120 days. This race runs on fundamentals and similar races.</p>`}</div>
+    <dl class="kv"><dt>Poll average</dt><dd>${fmtM(r.avg)}</dd><dt>Newest poll (field midpoint)</dt><dd>${r.newest_age == null ? "–" : r.newest_age + " days ago"}</dd>
+      <dt>Fundamentals</dt><dd>${fmtM(r.fund_mean)}</dd><dt>Forecast (${modeName().toLowerCase()})</dt><dd>${fmtM(st.mean)} ± ${(st.sd || 0).toFixed(1)}</dd>
+      <dt>Share from polls</dt><dd>${mode === "fundamentals" ? "0%" : Math.round((st.ps || 0) * 100) + "%"}</dd>
+      ${drivers(r, st)}
+      ${nH && hNow != null ? `<dt>House delegation, D seats</dt><dd>${hNow.toFixed(1)} of ${nH}${Object.keys(picks).length ? ` (was ${hBase.toFixed(1)})` : ""}</dd>` : ""}
+      ${(DS.redrawn || []).includes(r.state) ? `<dt></dt><dd class="sub">Map redrawn for 2026</dd>` : ""}</dl></div>${recordBlock(r)}</td>`;
+  return tr;
+}
+
+// ---------- timelines
+function lineChart(svg, dates, series, opts) {
+  svg.innerHTML = "";
+  const W = 420, H = 170, L = 36, R = 8, T = 10, B = 22;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const all = series.flatMap(s => s.vals).filter(v => v != null);
+  if (!all.length) { const t = document.createElementNS(SVGNS, "text"); t.setAttribute("x", W / 2); t.setAttribute("y", H / 2); t.setAttribute("text-anchor", "middle"); t.textContent = "no data"; svg.appendChild(t); return; }
+  let lo = opts.lo != null ? opts.lo : Math.min(...all), hi = opts.hi != null ? opts.hi : Math.max(...all);
+  if (opts.lo == null) { const pad = Math.max((hi - lo) * .15, 1); lo -= pad; hi += pad; }
+  const n = dates.length, x = i => L + (W - L - R) * (n > 1 ? i / (n - 1) : .5), y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const add = (tag, a, text) => { const e = document.createElementNS(SVGNS, tag); for (const k in a) e.setAttribute(k, a[k]); if (text != null) e.textContent = text; svg.appendChild(e); return e; };
+  const ticks = opts.ticks || [lo, (lo + hi) / 2, hi];
+  ticks.forEach(v => { add("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)" }); add("text", { x: L - 5, y: y(v) + 3, "text-anchor": "end" }, opts.fmt(v)); });
+  if (opts.zero != null && opts.zero > lo && opts.zero < hi) add("line", { x1: L, x2: W - R, y1: y(opts.zero), y2: y(opts.zero), stroke: "var(--muted)", "stroke-width": 1 });
+  [0, Math.floor((n - 1) / 2), n - 1].forEach(i => add("text", { x: x(i), y: H - 6, "text-anchor": i === 0 ? "start" : i === n - 1 ? "end" : "middle" }, dates[i].slice(5)));
+  const si = dates.indexOf(date);
+  if (si >= 0) add("line", { x1: x(si), x2: x(si), y1: T, y2: H - B, stroke: "var(--ink)", "stroke-width": 1.5 });
+  for (const s of series) {
+    let d = "", pen = false;
+    s.vals.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + x(i).toFixed(1) + "," + y(v).toFixed(1); pen = true; });
+    add("path", { d, fill: "none", stroke: s.color, "stroke-width": 2 });
+    if (si >= 0 && s.vals[si] != null) add("circle", { cx: x(si), cy: y(s.vals[si]), r: 4, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 });
+  }
+  const hit = add("rect", { x: L, y: T, width: W - L - R, height: H - T - B, fill: "transparent" });
+  const tt = document.createElementNS(SVGNS, "title"); hit.appendChild(tt);
+  hit.addEventListener("mousemove", e => {
+    const r = svg.getBoundingClientRect(); const i = Math.round(((e.clientX - r.left) / r.width * W - L) / (W - L - R) * (n - 1));
+    const k = Math.max(0, Math.min(n - 1, i));
+    tt.textContent = `${dates[k]}: ` + series.map(s => `${s.name} ${s.vals[k] == null ? "–" : opts.fmt(s.vals[k])}`).join(", ");
+  });
+  hit.addEventListener("click", e => {
+    const r = svg.getBoundingClientRect(); const i = Math.max(0, Math.min(n - 1, Math.round(((e.clientX - r.left) / r.width * W - L) / (W - L - R) * (n - 1))));
+    jumpTo(dates[i]);
+  });
+}
+function drawTimelines() {
+  const H = HIST[year], tl = H && H.timeline;
+  $("tl-mode").textContent = modeName().toLowerCase();
+  if (!tl) { ["tl-odds", "tl-gen", "tl-appr"].forEach(id => $(id).innerHTML = ""); $("tl-legend").innerHTML = '<span class="sub">Loading…</span>'; return; }
+  const m = tl.modes[mode] || {};
+  const series = [];
+  if (m.p_senate_dem && m.p_senate_dem.some(v => v != null)) series.push({ name: "Senate", color: "var(--s-sen)", vals: m.p_senate_dem.map(v => v == null ? null : v * 100) });
+  if (m.p_house_dem && m.p_house_dem.some(v => v != null)) series.push({ name: "House", color: "var(--s-house)", vals: m.p_house_dem.map(v => v == null ? null : v * 100) });
+  if (m.p_pres_dem && m.p_pres_dem.some(v => v != null)) series.push({ name: "President", color: "var(--s-pres)", vals: m.p_pres_dem.map(v => v == null ? null : v * 100) });
+  lineChart($("tl-odds"), tl.dates, series, { lo: 0, hi: 100, ticks: [0, 50, 100], fmt: v => Math.round(v) + "%", zero: 50 });
+  $("tl-legend").innerHTML = series.map(s => `<span class="key"><span class="sw" style="background:${s.color}"></span>${s.name}</span>`).join("");
+  const presTl = tl.pres_poll && tl.pres_poll.some(v => v != null);
+  $("tl-gen-h").textContent = presTl ? "National presidential poll average (D − R)" : "Generic ballot average (D − R)";
+  lineChart($("tl-gen"), tl.dates, [{ name: presTl ? "Popular vote (polls)" : "Generic ballot", color: "var(--s-sen)", vals: presTl ? tl.pres_poll : tl.generic }], { fmt: v => fmtM(v).replace(".0", ""), zero: 0 });
+  lineChart($("tl-appr"), tl.dates, [{ name: "Net approval", color: "var(--s-house)", vals: tl.approval }], { fmt: v => (v > 0 ? "+" : "") + v.toFixed(0), zero: 0 });
+}
+
+// ---------- data loading & navigation
+function datesFor(y) { const r = F.index.find(q => q.year === y); return r ? r.dates : [F.live.asof]; }
+function loadScript(src) {
+  return new Promise(res => { const s = document.createElement("script"); s.src = src; s.onload = () => res(true); s.onerror = () => res(false); document.head.appendChild(s); });
+}
+async function loadYear(y) {
+  if (HIST[y]) return HIST[y];
+  const r = F.index.find(q => q.year === y);
+  if (!r) return null;
+  await Promise.all([loadScript(r.file), loadScript(r.file.replace(".js", "_house.js"))]);
+  const h = HIST[y], hh = HIST_HOUSE[y];
+  if (h && hh) for (const [d, modes] of Object.entries(hh)) for (const [m, b64] of Object.entries(modes))
+    if (h.datasets[d] && h.datasets[d].modes[m]) h.datasets[d].modes[m].house = b64;
+  return h || null;
+}
+async function setDataset(y, d) {
+  $("app").classList.add("loading");
+  const h = await loadYear(y);
+  year = y;
+  if (y === F.live.year && d === F.live.asof) DS = F.live;
+  else if (h && h.datasets[d]) DS = h.datasets[d];
+  else { const ds = datesFor(y); d = ds[ds.length - 1]; DS = (y === F.live.year && d === F.live.asof) ? F.live : h.datasets[d]; }
+  date = DS.asof;
+  prep(DS);
+  for (const k in picks) delete picks[k];
+  scenario = null; baseC = null; open.clear();
+  if (!DS.views[view] || !DS.views[view].length) view = "sen";
+  showResult = false;
+  fillSelectors();
+  buildMapLayer();
+  $("app").classList.remove("loading");
+  render();
+}
+function jumpTo(dstr) {
+  const ds = datesFor(year);
+  let best = ds[0], bd = 1e18;
+  for (const d of ds) { const dd = Math.abs(new Date(d) - new Date(dstr)); if (dd < bd) { bd = dd; best = d; } }
+  if (best !== date) setDataset(year, best);
+}
+function fillSelectors() {
+  const ys = $("sel-year");
+  ys.innerHTML = F.index.map(r => `<option value="${r.year}" ${r.year === year ? "selected" : ""}>${r.year}${r.year === F.live.year ? " (live)" : ""}</option>`).join("");
+  const E = new Date(DS.election + "T12:00");
+  $("sel-date").innerHTML = datesFor(year).map(d => {
+    const days = Math.round((E - new Date(d + "T12:00")) / 864e5);
+    return `<option value="${d}" ${d === date ? "selected" : ""}>${d} · ${days === 0 ? "Election Day" : days + " days out"}${year === F.live.year && d === F.live.asof ? " (latest)" : ""}</option>`;
+  }).join("");
+  $("v-pres").disabled = !DS.views.pres;
+  $("v-house").disabled = !(DS.views.house && DS.views.house.length);
+  $("result").hidden = !DS.views[view].some(r => r.actual != null);
+}
+$("sel-year").onchange = e => { const y = +e.target.value; const ds = datesFor(y); setDataset(y, ds[ds.length - 1]); };
+$("sel-date").onchange = e => setDataset(year, e.target.value);
+
+function cycle(key) { if (DS._prep[mode].static) return; const k = view + ":" + key, cur = picks[k]; setPick(k, cur == null ? "D" : cur === "D" ? "R" : null); }
+function setPick(k, side) { scenario = null; showResult = false; if (side) picks[k] = side; else delete picks[k]; render(); }
+$("reset").onclick = () => { scenario = null; for (const k in picks) delete picks[k]; render(); };
+$("result").onclick = () => { showResult = !showResult; scenario = null; render(); };
+document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
+  mode = b.dataset.mode; scenario = null; baseC = null;
+  try { localStorage.setItem("senx-mode", mode); } catch (e) {}
+  render();
+});
+document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => {
+  if (!DS.views[b.dataset.view] || !DS.views[b.dataset.view].length) return;
+  view = b.dataset.view; scenario = null; showResult = false; open.clear(); buildMapLayer(); render();
+});
+
+function render() {
+  document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === mode));
+  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === view));
+  $("result").setAttribute("aria-pressed", showResult); $("result").textContent = showResult ? "Back to forecast" : "Show what happened";
+  $("result").hidden = !DS.views[view].some(r => r.actual != null);
+  const b = base(), c = Object.keys(picks).length ? compute() : b;
+  const E = new Date(DS.election + "T12:00"), days = Math.round((E - new Date(DS.asof + "T12:00")) / 864e5);
+  $("title").textContent = `${DS.year} ${view === "pres" ? "President" : view === "house" ? "House" : "Senate"}`;
+  $("asof").textContent = `Forecast as of ${new Date(DS.asof + "T12:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}, ${days === 0 ? "Election Day" : days + " days before the election"} · ${DS.n_sims.toLocaleString()} simulations per model${DS.year !== F.live.year ? " · using only what was known then" : ""}`;
+  $("map-h").textContent = showResult ? "What happened" : scenario ? "One simulated outcome" : DS._prep[mode].static ? "Forecast odds on this date" : view === "house" ? "Click a district to call it" : "Click a state to call it";
+  $("tbl-h").textContent = view === "pres" ? "States" : view === "house" ? `Competitive House districts (${(DS.views.house || []).length})` : "Races";
+  drawMap(c); drawHist(c); drawSummary(c, b); drawTable(c, b); drawNational(c, b); drawScenario(c); drawTimelines();
+}
+
+DS = prep(F.live);
+fillSelectors();
+buildMapLayer();
+render();
+loadYear(year).then(() => drawTimelines());
+})();
+</script>

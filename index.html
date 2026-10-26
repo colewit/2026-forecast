@@ -352,7 +352,7 @@ function prep(ds) {
   if (ds._prep) return ds;
   ds._prep = {};
   for (const [m, d] of Object.entries(ds.modes)) {
-    if (d.static) { ds._prep[m] = { agg: d.agg, static: d.static, stats: {} }; continue; }   // past election: summaries only
+    if (d.static) { ds._prep[m] = { agg: d.agg, static: d.static, stats: { sen: d.sen_stats, pres: d.pres_stats, house: d.house_stats } }; continue; }   // summaries only
     const o = { agg: d.agg, nat: decode(d.nat_env, Int8Array), natp: decode(d.nat_pres, Int8Array), htot: decode(d.house_tot, Uint16Array), stats: {} };
     for (const v of ["sen", "pres", "house"]) if (d[v]) { o[v] = decode(d[v], Int8Array); o.stats[v] = d[v + "_stats"]; }
     if (d.house_states) o.hs = decode(d.house_states, Uint8Array);
@@ -800,7 +800,7 @@ function detailRow(r, i, c, b) {
       <td class="r mono">${p.n ? p.n.toLocaleString() : "–"} ${p.pop}</td><td class="r dem">${p.dem.toFixed(0)}</td><td class="r rep">${p.rep.toFixed(0)}</td>
       <td class="r">${fmtM(p.raw)}</td><td class="r mono">${sg(-p.he)}</td><td class="r mono">${sg(p.lv)}</td><td class="r mono">${sg(p.tr)}</td><td class="r ${p.adj > 0 ? "dem" : "rep"}">${fmtM(p.adj)}</td>
       <td><span class="wbar" style="width:${(p.share / mx * 60).toFixed(0)}px"></span> <span class="mono">${(p.share * 100).toFixed(1)}%</span></td></tr>`).join("");
-  const st = DS._prep[mode].stats[view][i], nH = (DS.house_size || {})[r.state] || 0;
+  const st = ((DS._prep[mode].stats || {})[view] || [])[i] || {}, nH = (DS.house_size || {})[r.state] || 0;
   const hNow = c.houseState ? c.houseState[r.state] : null, hBase = b.houseState ? b.houseState[r.state] : null;
   tr.innerHTML = `<td colspan="12"><div class="detail-grid"><div class="tbl-wrap">${ps.length ? `<table class="polls"><thead><tr><th>Field date</th><th>Pollster</th><th class="r">Sample</th><th class="r">D</th><th class="r">R</th><th class="r">Margin</th><th class="r" title="Minus the pollster's house effect: its historical lean, updated with how its polls this cycle compare with other pollsters' in the same races">House effect adj.</th><th class="r" title="Registered-voter and all-adult polls moved to a likely-voter basis, by this cycle's gap between the likely- and registered-voter versions of the same polls">LV adj.</th><th class="r" title="Shift for how much the national environment has moved since the poll was fielded">Trend adj.</th><th class="r">Adjusted</th><th>Weight</th></tr></thead><tbody>${rowsHtml}</tbody></table>` : `<p class="sub">No public polls in the last 120 days. This race runs on fundamentals and similar races.</p>`}</div>
     <dl class="kv"><dt>Poll average</dt><dd>${fmtM(r.avg)}</dd><dt>Newest poll (field midpoint)</dt><dd>${r.newest_age == null ? "–" : r.newest_age + " days ago"}</dd>

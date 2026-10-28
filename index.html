@@ -447,6 +447,9 @@ for (const st of Object.keys(F.geo).filter(k => !k.endsWith("_c"))) {
   map.appendChild(p); shapes[st] = p;
 }
 const overlay = document.createElementNS(SVGNS, "g"); map.appendChild(overlay);
+{ const defs = document.createElementNS(SVGNS, "defs");     // hatch for "no D-vs-R race" tiles on the shift map
+  defs.innerHTML = '<pattern id="nodata-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="var(--nodata)"/><line x1="0" y1="0" x2="0" y2="5" stroke="var(--muted)" stroke-width="1.2"/></pattern>';
+  map.insertBefore(defs, map.firstChild); }
 const CALLOUT = { sen: ["NH", "MA", "RI", "NJ", "DE"], pres: ["VT", "NH", "MA", "RI", "CT", "NJ", "DE", "MD", "DC"] };
 let mapItems = {};       // raceKey -> {shape, label:{a,b} | callout:{r,tx}}
 
@@ -554,7 +557,7 @@ function drawShift() {
   S.pts.forEach((pt, k) => {
     if (!pt[col.d]) return;
     const v = vals[k], shown = v == null ? null : rel ? v - avg : v;
-    const p = add("path", { d: pt[col.d], fill: shown == null ? "var(--nodata)" : fillOf(shown), stroke: "var(--surface)", "stroke-width": 0.3, class: "shift-tile", tabindex: 0 });
+    const p = add("path", { d: pt[col.d], fill: shown == null ? "url(#nodata-hatch)" : fillOf(shown), stroke: "var(--surface)", "stroke-width": 0.3, class: "shift-tile", tabindex: 0 });
     const t = document.createElementNS(SVGNS, "title");
     t.textContent = v == null ? `${pt[0]}: no contested race or no ${shiftBase === "pres24" ? "2024 presidential" : "2024 House"} baseline`
       : `${pt[0]}: ${shiftBase === "pres24" ? "2024 president" : "2024 House"} ${fmtM(pt[col[shiftBase]])} → 2026 ${modeName().toLowerCase()} ${fmtM(pt[mk])} · shift ${fmtM(v)}${rel ? ` (${fmtM(v - avg)} vs the average)` : ""}${pt[col.approx_loc] ? " · old-lines shape" : ""}`;
@@ -564,6 +567,7 @@ function drawShift() {
   for (const st of Object.keys(F.geo).filter(k => !k.endsWith("_c"))) add("path", { d: F.geo[st], fill: "none", stroke: "var(--ink)", "stroke-width": 0.6, "stroke-opacity": 0.55 }, borders);
   const steps = [-1, -0.6, -0.3, 0, 0.3, 0.6, 1].map(f => f * cap);
   $("shift-legend").innerHTML = `<span>${rel ? "Shift vs the average" : "Shift since 2024"}:</span>` +
+    `<span class="sw" style="background:repeating-linear-gradient(45deg, var(--nodata) 0 3px, var(--muted) 3px 4px)"></span><span>no D-vs-R race</span>` +
     steps.map(v => `<span class="sw" style="background:${v === 0 ? "var(--surface)" : fillOf(v)}"></span><span>${v === 0 ? "0" : (v > 0 ? "D+" : "R+") + Math.round(Math.abs(v))}${Math.abs(v) === cap ? "+" : ""}</span>`).join("") +
     `<span style="flex-basis:100%">${ok.length} contested districts; average shift ${fmtM(avg)}, ${nd} of ${ok.length} toward Democrats. ${shiftBase === "pres24" ? "Baseline: the 2024 presidential margin on this year's lines." : "Baseline: the 2024 House result; districts redrawn or uncontested in 2024 are grey."} States with new maps are drawn as rough county-based tilings. Follows the model buttons, not your calls. Hover a district for numbers.</span>`;
   $("map-h").textContent = "Shift since 2024, by district";

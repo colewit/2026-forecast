@@ -78,9 +78,8 @@ label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px
 .hm-tog { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 6px }
 .hm-tog .seg button { padding: 5px 11px; font-size: 13px }
 .hm-tog select { font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink) }
-.shift-arrow { stroke-width: 1.3; stroke-linecap: round; opacity: .85 }
-.shift-hit { fill: transparent; cursor: default }
-.shift-hit:hover + .shift-arrow, .shift-hit:focus + .shift-arrow { stroke-width: 2.6; opacity: 1 }
+.shift-tile:hover, .shift-tile:focus { stroke: var(--ink); stroke-width: 1.2; outline: none }
+.legend .sw { width: 18px; height: 10px; border-radius: 2px; border: 1px solid var(--line); display: inline-block }
 @media (prefers-reduced-motion: reduce) { #map path { transition: none } }
 #hist { width: 100%; height: auto; display: block }
 #hist text { font-family: var(--mono); font-size: 10px; fill: var(--muted) }
@@ -267,6 +266,7 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
           <option value="pres24">2024 presidential vote</option>
           <option value="house24">2024 House result (same lines)</option>
         </select></label>
+        <label class="sub" id="hm-rel-l" hidden><input type="checkbox" id="hm-rel"> relative to the average shift</label>
       </div>
       <svg id="map" role="img" aria-label="Map of races colored by chance of a Democratic win"></svg>
       <div class="dgrid" id="dgrid" hidden></div>
@@ -447,16 +447,13 @@ for (const st of Object.keys(F.geo).filter(k => !k.endsWith("_c"))) {
   map.appendChild(p); shapes[st] = p;
 }
 const overlay = document.createElementNS(SVGNS, "g"); map.appendChild(overlay);
-{ const defs = document.createElementNS(SVGNS, "defs");
-  defs.innerHTML = ["d", "r"].map(k => `<marker id="ah-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,1L9,5L0,9Z" fill="var(--${k === "d" ? "dem" : "rep"})"/></marker>`).join("");
-  map.appendChild(defs); }
 const CALLOUT = { sen: ["NH", "MA", "RI", "NJ", "DE"], pres: ["VT", "NH", "MA", "RI", "CT", "NJ", "DE", "MD", "DC"] };
 let mapItems = {};       // raceKey -> {shape, label:{a,b} | callout:{r,tx}}
 
 let houseMap = "grid", shiftBase = "pres24";     // House view: district tiles, or arrows of the shift since 2024
 function buildMapLayer() {
   const isHouse = view === "house", shiftOn = isHouse && houseMap === "shift" && !!DS.shift_map;
-  $("hm-tog").hidden = !(isHouse && DS.shift_map); $("hm-base-l").hidden = !shiftOn; $("shift-legend").hidden = !shiftOn;
+  $("hm-tog").hidden = !(isHouse && DS.shift_map); $("hm-base-l").hidden = !shiftOn; $("hm-rel-l").hidden = !shiftOn; $("shift-legend").hidden = !shiftOn;
   document.querySelectorAll("[data-hm]").forEach(b => b.setAttribute("aria-pressed", b.dataset.hm === (shiftOn ? "shift" : "grid")));
   $("map").hidden = isHouse && !shiftOn; $("dgrid").hidden = !isHouse || shiftOn; $("map-legend").hidden = isHouse;
   overlay.innerHTML = "";
@@ -543,29 +540,32 @@ function drawGrid(c) {
 }
 
 function drawShift() {
-  // one arrow per district from its 2024 baseline to the 2026 projection (this model mode): left and blue = toward
-  // Democrats, right and red = toward Republicans, length = size of the shift, angled like the NYT shift maps
+  // each district's area (real 2024-lines shapes; a county-based tiling in states with new maps) shaded by the shift from
+  // its 2024 baseline to the 2026 projection (this model mode): blue toward Democrats, red toward Republicans, darker =
+  // bigger. "Relative" subtracts the average shift so the national swing drops out.
   overlay.innerHTML = "";
   const S = DS.shift_map, col = Object.fromEntries(S.cols.map((k, i) => [k, i]));
   const mk = { fundamentals: col.fund, polls: col.polls, combined: col.combined }[mode];
-  const ang = 35 * Math.PI / 180, K = 2.2, MAXL = 60, add = (tag, a, parent) => { const e = document.createElementNS(SVGNS, tag); for (const k in a) e.setAttribute(k, a[k]); (parent || overlay).appendChild(e); return e; };
-  let n = 0, sum = 0, nd = 0;
-  for (const pt of S.pts) {
-    const proj = pt[mk], b0 = pt[col[shiftBase]];
-    if (proj == null || b0 == null) continue;
-    const d = proj - b0, L = Math.min(Math.abs(d) * K, MAXL), dir = d > 0 ? -1 : 1, x = pt[col.x], y = pt[col.y];
-    const x2 = x + dir * L * Math.cos(ang), y2 = y - L * Math.sin(ang), c = d > 0 ? "var(--dem)" : "var(--rep)";
-    const g = add("g", {});
-    const hit = add("circle", { cx: x, cy: y, r: 5, class: "shift-hit", tabindex: 0 }, g);
+  const rel = $("hm-rel").checked, cap = rel ? 8 : 20;
+  const add = (tag, a, parent) => { const e = document.createElementNS(SVGNS, tag); for (const k in a) e.setAttribute(k, a[k]); (parent || overlay).appendChild(e); return e; };
+  const vals = S.pts.map(pt => (pt[mk] == null || pt[col[shiftBase]] == null) ? null : pt[mk] - pt[col[shiftBase]]);
+  const ok = vals.filter(v => v != null), avg = ok.reduce((a, v) => a + v, 0) / (ok.length || 1), nd = ok.filter(v => v > 0).length;
+  const fillOf = v => { const t = Math.min(Math.abs(v) / cap, 1); return `color-mix(in srgb, var(${v > 0 ? "--dem" : "--rep"}) ${Math.round(6 + 94 * Math.pow(t, 0.8))}%, var(--surface))`; };
+  S.pts.forEach((pt, k) => {
+    if (!pt[col.d]) return;
+    const v = vals[k], shown = v == null ? null : rel ? v - avg : v;
+    const p = add("path", { d: pt[col.d], fill: shown == null ? "var(--nodata)" : fillOf(shown), stroke: "var(--surface)", "stroke-width": 0.3, class: "shift-tile", tabindex: 0 });
     const t = document.createElementNS(SVGNS, "title");
-    t.textContent = `${pt[0]}: ${shiftBase === "pres24" ? "2024 president" : "2024 House"} ${fmtM(b0)} → 2026 ${modeName().toLowerCase()} ${fmtM(proj)} (shift ${fmtM(d)})${pt[col.approx_loc] ? " · placed at its old-lines location" : ""}`;
-    hit.appendChild(t);
-    add("path", { d: `M${x},${y}L${x2.toFixed(1)},${y2.toFixed(1)}`, stroke: c, class: "shift-arrow", "marker-end": `url(#ah-${d > 0 ? "d" : "r"})` }, g);
-    n++; sum += d; if (d > 0) nd++;
-  }
-  const ex = 10 * K;
-  $("shift-legend").innerHTML = `<svg width="${ex + 30}" height="16" aria-hidden="true"><path d="M${ex + 4},12L4,${(12 - ex * Math.tan(ang)).toFixed(1)}" stroke="var(--dem)" class="shift-arrow" marker-end="url(#ah-d)"/></svg>
-    <span>10-pt shift toward Democrats · right and red = toward Republicans · ${n} contested districts, average ${fmtM(sum / (n || 1))}, ${nd} of ${n} toward Democrats. ${shiftBase === "pres24" ? "Baseline: the 2024 presidential margin on this year's lines." : "Baseline: the 2024 House result; districts redrawn or uncontested in 2024 are left out."} Projection follows the model buttons, not your calls.</span>`;
+    t.textContent = v == null ? `${pt[0]}: no contested race or no ${shiftBase === "pres24" ? "2024 presidential" : "2024 House"} baseline`
+      : `${pt[0]}: ${shiftBase === "pres24" ? "2024 president" : "2024 House"} ${fmtM(pt[col[shiftBase]])} → 2026 ${modeName().toLowerCase()} ${fmtM(pt[mk])} · shift ${fmtM(v)}${rel ? ` (${fmtM(v - avg)} vs the average)` : ""}${pt[col.approx_loc] ? " · old-lines shape" : ""}`;
+    p.appendChild(t);
+  });
+  const borders = add("g", { "pointer-events": "none" });
+  for (const st of Object.keys(F.geo).filter(k => !k.endsWith("_c"))) add("path", { d: F.geo[st], fill: "none", stroke: "var(--ink)", "stroke-width": 0.6, "stroke-opacity": 0.55 }, borders);
+  const steps = [-1, -0.6, -0.3, 0, 0.3, 0.6, 1].map(f => f * cap);
+  $("shift-legend").innerHTML = `<span>${rel ? "Shift vs the average" : "Shift since 2024"}:</span>` +
+    steps.map(v => `<span class="sw" style="background:${v === 0 ? "var(--surface)" : fillOf(v)}"></span><span>${v === 0 ? "0" : (v > 0 ? "D+" : "R+") + Math.round(Math.abs(v))}${Math.abs(v) === cap ? "+" : ""}</span>`).join("") +
+    `<span style="flex-basis:100%">${ok.length} contested districts; average shift ${fmtM(avg)}, ${nd} of ${ok.length} toward Democrats. ${shiftBase === "pres24" ? "Baseline: the 2024 presidential margin on this year's lines." : "Baseline: the 2024 House result; districts redrawn or uncontested in 2024 are grey."} States with new maps are drawn as rough county-based tilings. Follows the model buttons, not your calls. Hover a district for numbers.</span>`;
   $("map-h").textContent = "Shift since 2024, by district";
 }
 function drawMap(c) {
@@ -1008,6 +1008,7 @@ function render() {
 
 document.querySelectorAll("[data-hm]").forEach(b => b.addEventListener("click", () => { houseMap = b.dataset.hm; buildMapLayer(); render(); }));
 $("hm-base").addEventListener("change", e => { shiftBase = e.target.value; render(); });
+$("hm-rel").addEventListener("change", () => render());
 DS = prep(F.live);
 fillSelectors();
 buildMapLayer();

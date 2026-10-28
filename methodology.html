@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forecast Model Specification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~70ch) with a section index above it; equations full-width in their own scroll boxes.
+   Same identity as the Senate Explorer: Barlow Condensed headings, Public Sans text, Plex Mono for values. */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --ink: #1b1f27; --muted: #5d6573; --line: #d9dde4;
+  --dem: #2457c5; --rep: #c8322f; --accent: #2457c5; --focus: #7a4fd6; --eqbg: #fbfbfc;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --accent: #7aa2f2; --focus: #a98bf0; --eqbg: #161a21; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --accent: #7aa2f2; --focus: #a98bf0; --eqbg: #161a21; color-scheme: dark }
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.6 }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px }
+h1 { font-family: var(--display); font-weight: 700; font-size: 36px; line-height: 1; margin: 0; text-wrap: balance }
+h2 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 8px 0 0; letter-spacing: .01em; text-wrap: balance }
+h3 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 6px 0 0; letter-spacing: .02em }
+.sub { color: var(--muted); font-size: 13px }
+.back { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; text-decoration: none; color: var(--ink); font-size: 14px }
+a { color: var(--accent) }
+a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+section { display: grid; gap: 12px; min-width: 0 }
+section > p, section > ul, section > ol { margin: 0; max-width: 70ch }
+ul, ol { padding-left: 20px; display: grid; gap: 4px }
+.toc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px }
+.toc ol { margin: 6px 0 0; columns: 2; column-gap: 28px; display: block }
+.toc li { break-inside: avoid; padding: 2px 0 }
+@media (max-width: 560px) { .toc ol { columns: 1 } }
+.eq { background: var(--eqbg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; overflow-x: auto; min-width: 0 }
+.eq mjx-container[display="true"] { margin: .6em 0 !important }
+.note { font-size: 13px; color: var(--muted); max-width: 70ch; margin: 0 }
+.tbl { overflow-x: auto; min-width: 0 }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top }
+td.v { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap }
+code { font-family: var(--mono); font-size: 12.5px }
+.where { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; font-size: 14px; max-width: 70ch }
+.where dt { white-space: nowrap } .where dd { margin: 0 }
+hr { border: 0; border-top: 1px solid var(--line); margin: 6px 0 }
+</style>
+<script>
+window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]], macros: { R: "\\mathbb{R}", E: "\\mathbb{E}", Var: "\\operatorname{Var}", Cov: "\\operatorname{Cov}", clip: "\\operatorname{clip}" } },
+  svg: { fontCache: "global" } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Model specification</h1>
+    <div class="sub">2026 House and Senate forecast · values as fit for October 25, 2026 · margins are Democratic minus Republican, in percentage points</div>
+  </div>
+  <a class="back" href="index.html">← Explorer</a>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#overview">Overview and notation</a></li>
+    <li><a href="#national">National fundamentals</a></li>
+    <li><a href="#race">Race fundamentals</a></li>
+    <li><a href="#money">Money</a></li>
+    <li><a href="#incumbency">Incumbency</a></li>
+    <li><a href="#polls">Poll averages</a></li>
+    <li><a href="#joint">Joint model</a></li>
+    <li><a href="#update">Combining polls and fundamentals</a></li>
+    <li><a href="#spreads">Fitting the spreads</a></li>
+    <li><a href="#sims">Simulation and seats</a></li>
+    <li><a href="#fixed">Fixed settings</a></li>
+  </ol>
+</nav>
+
+<section id="overview">
+  <h2>1. Overview and notation</h2>
+  <p>The model is a single linear-Gaussian system. Each race's election-day margin is a fundamentals forecast plus layered deviations (national, state, similar-district, race). Poll averages are noisy measurements of those margins with their own layered errors. Conditioning on the polls gives a closed-form posterior, which is simulated to produce chances and seat counts. Every parameter for a cycle \(T\) is estimated only from cycles \(c \lt T\).</p>
+  <dl class="where">
+    <dt>\(m_r\)</dt><dd>election-day margin in race \(r\) (D − R, points)</dd>
+    <dt>\(f_r\)</dt><dd>fundamentals (no-polls) forecast for race \(r\)</dd>
+    <dt>\(s(r)\), \(o(r)\)</dt><dd>the race's state and office (Senate, House race, House race on a redrawn map, president)</dd>
+    <dt>\(N_h, N_p\)</dt><dd>national House and presidential environment deviations</dd>
+    <dt>\(S_s\)</dt><dd>shared deviation of state \(s\)</dd>
+    <dt>\(e_r\)</dt><dd>race-level deviation (includes the similar-district component for House races)</dd>
+    <dt>\(\bar y_r\)</dt><dd>adjusted poll average for race \(r\)</dd>
+    <dt>\(w_c\)</dt><dd>recency weight of past cycle \(c\), \(w_c = 2^{-(T-c)/h}\) with a half-life \(h\) in years given per use</dd>
+  </dl>
+</section>
+
+<section id="national">
+  <h2>2. National fundamentals</h2>
+  <p>The expected national House margin (and in presidential years the popular vote) comes from a Bayesian ridge regression over past cycles on standardized inputs. It is fit in terms of the president's party: each past result is multiplied by the president's party sign \(\operatorname{sgn}_c = +1\) under a Democratic president and \(-1\) under a Republican one, and the forecast is converted back to D − R the same way:</p>
+  <div class="eq">\[ \hat N_h \;=\; \operatorname{sgn}_T \big( \beta_0 + \beta_1\,\text{approval} + \beta_2\,\text{GDP growth} + \beta_3\,\Delta\text{unemployment}_{12\text{m}} + \beta_4\,\text{inflation} + \beta_5\,\text{sentiment} + \beta_6\,\text{midterm} \big) \]</div>
+  <p>So the weights describe what helps the president's party: a strong economy raises the bracket, which lowers the D − R environment when the president is a Republican (as in 2026), and the midterm term is the president's party's midterm penalty. Each weight is held to its expected sign for the president's party (approval, growth and sentiment positive; unemployment change and inflation negative). A wrong-signed input is dropped and the fit redone. The presidential version adds whether the incumbent is running. Polls of the generic ballot and national presidential vote update \(N_h\) and \(N_p\) in section 8; this section is the prior mean.</p>
+</section>
+
+<section id="race">
+  <h2>3. Race fundamentals</h2>
+  <p>Each office has a linear model fit by weighted least squares on past races (\(w_c\) with an 8-year half-life). Lean weights are constrained to be non-negative and sum to one; the former-governor and past-overperformance weights are kept non-negative. Senate:</p>
+  <div class="eq">\[ \begin{aligned}
+  f_r ={}& \alpha + \lambda_1 \ell^{(1)}_{s} + \lambda_2 \ell^{(2)}_{s} + \beta_N \hat N_h + \beta_{\kappa}\,\kappa(x_r) + \beta_{\text{inc}}\,\iota_r \\
+        & + \beta_{\text{gov}}\,\text{gov}_r + \beta_{\text{perf}}\,\text{perf}_r + \beta_{\$}\,M_r,
+  \qquad \lambda_1+\lambda_2 = 1,\; \lambda_j \ge 0
+  \end{aligned} \]</div>
+  <p>House race (the district existed on the same lines last cycle, so it has a last result):</p>
+  <div class="eq">\[ \begin{aligned}
+  f_r ={}& \alpha + \lambda_{\text{prev}}\, m^{\text{prev}}_r + \lambda_{\text{dist}}\,\ell^{\text{dist}}_r + \beta_N \hat N_h + \beta_{N'} N^{\text{prev}} + \beta_{\kappa}\,\kappa(x_r) + \beta_{\text{inc}}\,\iota_r \\
+        & + \beta_{\text{oD}}\,\text{open}^{D}_r + \beta_{\text{oR}}\,\text{open}^{R}_r + \beta_{\text{perf}}\,\text{perf}_r + \beta_{\text{gov}}\,\text{gov}_r + \beta_{\$}\,M_r, \qquad \lambda_{\text{prev}}+\lambda_{\text{dist}} = 1,\; \lambda \ge 0
+  \end{aligned} \]</div>
+  <p>House race on a redrawn map (no last result on these lines): one model trained on every past House race with district lean, including those that did have a last result. Where the last result is missing it is filled with what lean implies, \(\tilde m^{\text{prev}}_r = \ell^{\text{dist}}_r + N^{\text{prev}}\), and a flag lets those races sit at their own level:</p>
+  <div class="eq">\[ \begin{aligned}
+  f_r ={}& \text{(House race model with } \tilde m^{\text{prev}}_r \text{ in place of } m^{\text{prev}}_r\text{)} + \beta_{\text{new}}\,\mathbb 1[\text{no last result}]_r + \beta_{\Delta}\,\Delta_r
+  \end{aligned} \]</div>
+  <p>with its own weights. \(\Delta_r\) is the district's recent presidential swing (0 where unknown). A fallback model with state lean covers districts without district-level presidential data.</p>
+  <p>Greek letters are fitted weights; each office has its own.</p>
+  <dl class="where">
+    <dt>\(N^{\text{prev}}\)</dt><dd>the previous cycle's national House margin</dd>
+    <dt>\(\ell^{(1)}, \ell^{(2)}\)</dt><dd>state presidential lean (state minus national margin) from the last and the previous presidential election</dd>
+    <dt>\(\kappa(x)\)</dt><dd>lopsided-seat curve \(\kappa(x) = x\,|x|/10\) with \(x_r = \ell_r + \hat N_h\). Its weight is negative: lopsided seats finish closer than lean alone implies</dd>
+    <dt>\(\iota_r\)</dt><dd>incumbency: +1 Democratic incumbent, −1 Republican, 0 open (section 5)</dd>
+    <dt>\(\text{perf}_r\)</dt><dd>the candidates' past overperformance of their seat's baseline, earlier races only</dd>
+    <dt>\(\text{gov}\)</dt><dd>former governor (Democrat minus Republican), from a checked list of governors who ran for Congress; each office fits its own weight</dd>
+    <dt>\(\text{open}^{D}, \text{open}^{R}\)</dt><dd>open seat previously held by each party</dd>
+    <dt>\(M_r\)</dt><dd>money edge (section 4)</dd>
+  </dl>
+  <h3>2026 weights (election-day fit)</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Term</th><th>Senate</th><th>House race</th><th>House race (redrawn map)</th></tr></thead>
+    <tbody>
+      <tr><td>Intercept \(\alpha\)</td><td class="v">1.42</td><td class="v">0.17</td><td class="v">0.28</td></tr>
+      <tr><td>National environment \(\beta_N\)</td><td class="v">1.00</td><td class="v">0.87</td><td class="v">0.87</td></tr>
+      <tr><td>Lean weights</td><td class="v">0.88 / 0.12</td><td class="v">0.64 lean · 0.36 last result</td><td class="v">0.71 lean · 0.29 last result (filled)</td></tr>
+      <tr><td>Previous national margin \(\beta_{N'}\)</td><td class="v">–</td><td class="v">−0.37</td><td class="v">−0.35</td></tr>
+      <tr><td>No last result \(\beta_{\text{new}}\)</td><td class="v">–</td><td class="v">–</td><td class="v">1.75</td></tr>
+      <tr><td>Recent presidential swing \(\beta_{\Delta}\)</td><td class="v">–</td><td class="v">–</td><td class="v">−0.14</td></tr>
+      <tr><td>Lopsided-seat curve \(\beta_{\kappa}\)</td><td class="v">−0.093</td><td class="v">−0.018</td><td class="v">−0.020</td></tr>
+      <tr><td>Incumbency \(\beta_{\text{inc}}\)</td><td class="v">2.35</td><td class="v">0.71</td><td class="v">0.82</td></tr>
+      <tr><td>Past overperformance</td><td class="v">0.53</td><td class="v">0.34</td><td class="v">0.42</td></tr>
+      <tr><td>Former governor</td><td class="v">4.29</td><td class="v">5.36</td><td class="v">0.95</td></tr>
+      <tr><td>Open seat, previously D / R</td><td class="v">–</td><td class="v">−0.65 / 2.36</td><td class="v">−0.06 / 1.67</td></tr>
+      <tr><td>Money \(\beta_{\$}\) (scale \(s\))</td><td class="v">3.72 ($0.10)</td><td class="v">1.02 ($0.01)</td><td class="v">1.18 ($0.01)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Within 15 days of the election the fundamentals use weights fit on election-day inputs; earlier, weights fit on inputs measured 30 days out.</p>
+</section>
+
+<section id="money">
+  <h2>4. Money</h2>
+  <p>All money behind each side counts: candidate committees' receipts, as filed by the forecast date, plus independent expenditures supporting that side's nominee or opposing the other, by dissemination date. Each side's money is valued with diminishing returns per person the race has to reach:</p>
+  <div class="eq">\[ M_r \;=\; \clip\!\left( \ln\!\Big(1 + \frac{\$^{D}_r}{s\,P_r}\Big) - \ln\!\Big(1 + \frac{\$^{R}_r}{s\,P_r}\Big),\; -4,\; 4 \right) \]</div>
+  <p>\(P_r\) is the state's population for Senate races and the state's population divided by its House seats for districts. When both sides spend far more than \(s P_r\), \(M_r \to \ln(\$^D/\$^R)\), the log ratio. When both spend far less, \(M_r \to (\$^D - \$^R)/(s P_r)\), the per-person dollar gap, which is small. Senate values are centered on that cycle's Senate average, since a party-wide fundraising edge says nothing about a given race. The scale \(s\) is chosen per office from \(\{0.01, 0.03, 0.1, 0.3, 1, 3, 10\}\) dollars per person by weighted in-sample fit on the training cycles. Money inputs start in 2002; earlier cycles get none, since the FEC's processed reports cover about 65% of 1998–2000 receipts.</p>
+</section>
+
+<section id="incumbency">
+  <h2>5. Incumbency</h2>
+  <p>The incumbency weight drifts over time and is kept positive. For training cycle \(c\):</p>
+  <div class="eq">\[ \beta_{\text{inc},c} = e^{x_c}, \qquad x_c = x_{c-1} + \eta_c,\quad \eta_c \sim \mathcal N(0,\, q\,\Delta_c) \]</div>
+  <p>with \(\Delta_c\) the number of two-year steps. The path and the drift variance \(q\) are estimated jointly with the other weights (alternating fits; \(q\) by Laplace-approximate marginal likelihood). For the forecast cycle the weight is lognormal, \(\beta_{\text{inc},T} \sim \log\mathcal N(\mu_T, v_T)\), one draw per office per simulation, shared by all running incumbents of that office: \(\beta_{\text{inc},T} = e^{\mu_T + \sqrt{v_T}\,u}\) with \(u_{\text{sen}}, u_{\text{house}} \sim \mathcal N(0,1)\). Because the draw is shared, incumbent races miss together, and polls in incumbent races update the effect for every incumbent. The poll update uses a linear loading on \(u\); simulations apply the exact lognormal. In 2026 the Senate's expected weight is 2.35 points (it was about 15 in 1998).</p>
+</section>
+
+<section id="polls">
+  <h2>6. Poll averages</h2>
+  <p>Polls sponsored by a candidate's own campaign are dropped, as are pollsters exposed as fraudulent. Each remaining poll \(p\) by pollster \(k\) gets an adjusted margin</p>
+  <div class="eq">\[ \tilde y_p = y_p - h_k - \mathbb 1[\text{RV or adults}]\; g_T \]</div>
+  <dl class="where">
+    <dt>\(h_k\)</dt><dd>house effect: the pollster's historical lean against final results, estimated out of sample with a decay half-life and shrinkage chosen by how well they predict the next cycle</dd>
+    <dt>\(g_T\)</dt><dd>likely-voter gap: this cycle's registered-voter minus likely-voter difference</dd>
+  </dl>
+  <div class="eq">\[ g_T = \frac{\mu_0/\tau^2 + \sum_k \bar g_k/\sigma_g^2}{1/\tau^2 + n/\sigma_g^2},\qquad \tau = 1.2,\;\; \sigma_g = 2.5 \]</div>
+  <p>where \(\mu_0\) is last cycle's gap and \(\bar g_k\) the average gap in pollster \(k\)'s same-poll LV/RV pairs released so far (\(n\) pollsters). Each pollster also has a reliability score \(\rho_k\): its error relative to time-matched peers in the same races, scaled by the typical spread, recency-weighted and shrunk toward the mean score of pollsters in their first rated cycle (\(\rho_{\text{new}}\); unrated pollsters get it):</p>
+  <div class="eq">\[ \hat\rho_k = \frac{\sum_{c} 2^{-(T-c)/(2h)}\,\rho_{k,c} + \kappa\,\rho_{\text{new}}}{\sum_{c} 2^{-(T-c)/(2h)} + \kappa} \]</div>
+  <p class="note">\(h\) is a half-life in election cycles (\((T-c)/2\) is how many cycles ago), so a cycle \(h\) cycles back counts half. \(h\) and the shrinkage strength \(\kappa\) are chosen by how well they predict each pollster's next-cycle score: \(h = 10\), \(\kappa = 64\) for reliability; house effects use the same form with \(h = 10\), \(\kappa = 4\).</p>
+  <p>Each poll's weight in its race's average is a product of five factors:</p>
+  <div class="eq">\[ \omega_p = w^{\text{age}}_p \; w^{\text{size}}_p \; w^{\text{pop}}_p \; w^{\text{rel}}_p \; w^{\text{rep}}_p \]</div>
+  <div class="tbl"><table>
+    <thead><tr><th>Factor</th><th>Formula</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Age</td><td>\(w^{\text{age}}_p = e^{-a_p/14}\)</td><td>\(a_p\) is days since the poll's field midpoint. Weight falls to about a third at two weeks; polls older than 120 days are dropped.</td></tr>
+      <tr><td>Sample size</td><td>\(w^{\text{size}}_p = \sqrt{n^{\text{eff}}_p/600}\)</td><td>\(n^{\text{eff}}_p\) is the effective sample size. Bigger samples count more, with diminishing returns; a 600-person poll gets 1.</td></tr>
+      <tr><td>Population</td><td>\(w^{\text{pop}}_p\)</td><td>A fixed weight by who was polled: likely voters, registered voters or all adults.</td></tr>
+      <tr><td>Reliability</td><td>\(w^{\text{rel}}_p = e^{-2\,\clip(\hat\rho_k,\,-1,\,1)}\)</td><td>\(\hat\rho_k\) is the pollster's reliability score (negative = more accurate than peers), so better pollsters count more. Capped between 0.14× and 7.4×; after shrinkage most scores are near 0, so this is usually 0.9×–1.1×.</td></tr>
+      <tr><td>Repeat polls</td><td>\(w^{\text{rep}}_p = 2^{-j_p}\)</td><td>\(j_p\) ranks the poll among the same pollster's polls of this race, newest = 0. A pollster's latest poll counts fully, the one before half, then a quarter, so a frequent tracker gets at most about twice one fresh poll's weight.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The race average and its sampling variance:</p>
+  <div class="eq">\[ \bar y_r = \frac{\sum_p \omega_p \tilde y_p}{\sum_p \omega_p}, \qquad
+  \text{SE}_r^2 = \frac{\sum_p \omega_p^2\, \text{SE}^2_p}{\big(\sum_p \omega_p\big)^2} \]</div>
+  <p>\(\text{SE}_p^2\) is each poll's sampling variance. The average also carries its weighted undecided share \(u_r\), weighted reliability \(\bar\rho_r\) and number of distinct pollsters \(n_r\).</p>
+</section>
+
+<section id="joint">
+  <h2>7. Joint model</h2>
+  <p>Latent vector and margins:</p>
+  <div class="eq">\[ x = (N_p, N_h, S_1, \dots, S_{51}, e_1, \dots, e_R, u_{\text{sen}}, u_{\text{house}}), \qquad m_r = f_r + \mathbb 1[\text{pres}]\, N_p + \beta_{N,o(r)}\, N_h + S_{s(r)} + e_r + \text{incumbency draw} \]</div>
+  <p>\(u_{\text{sen}}, u_{\text{house}} \sim \mathcal N(0,1)\) are the shared incumbency draws (section 5). \(\beta_{N,o(r)}\) is the race's office weight on the national environment from section 3, so a national deviation moves each race by that weight; presidential races move one-for-one with \(N_p\).</p>
+  <p>In blocks, \(x\) stacks four groups: the national pair \(n = (N_p, N_h)\), the 51 state terms \(S\), the \(R\) race terms \(e\), and the two incumbency draws \(u = (u_{\text{sen}}, u_{\text{house}})\). Stacked over all races the margins are \(m - f = L x\), where the loading matrix \(L\) (one row per race) splits along the same blocks:</p>
+  <div class="eq">\[ x = \begin{pmatrix} n \\ S \\ e \\ u \end{pmatrix}, \qquad
+  L = \begin{pmatrix} \ell_p & \ell_h & A & I_R & B \end{pmatrix}, \qquad
+  m - f = \ell_p N_p + \ell_h N_h + A S + e + B u \]</div>
+  <dl class="where">
+    <dt>\(\ell_p, \ell_h\)</dt><dd>columns of length \(R\): \(\ell_{p,r} = \mathbb 1[\text{pres}]\), \(\ell_{h,r} = \beta_{N,o(r)}\)</dd>
+    <dt>\(A\)</dt><dd>\(R \times 51\) state membership: \(A_{r,s} = 1\) if race \(r\) is in state \(s\), else 0, so every race in a state gets the same \(S_s\)</dd>
+    <dt>\(I_R\)</dt><dd>identity: each race gets its own \(e_r\)</dd>
+    <dt>\(B\)</dt><dd>\(R \times 2\) incumbency loadings: \(\lambda_r\) in the column of the race's office (Senate or House) if an incumbent runs, 0 otherwise. \(\lambda_r\) is the linearized lognormal effect from section 5</dd>
+  </dl>
+  <p>A single row \(L_r\) is that race's coefficient on every entry of \(x\). The prior is \(x \sim \mathcal N(0, \Sigma)\), with the four groups independent of one another, so \(\Sigma\) is block diagonal:</p>
+  <div class="eq">\[ \Sigma = \begin{pmatrix} \Sigma_n & 0 & 0 & 0 \\ 0 & \sigma_S^2 K & 0 & 0 \\ 0 & 0 & \Sigma_e & 0 \\ 0 & 0 & 0 & I_2 \end{pmatrix}, \qquad
+  \Sigma_n = \begin{pmatrix}\sigma_p^2 & \rho\,\sigma_p\sigma_h\\ \rho\,\sigma_p\sigma_h & \sigma_h^2\end{pmatrix} \]</div>
+  <p>\(\Sigma_e = \Cov(e)\) is itself in two blocks, Senate and president races first, then House races:</p>
+  <div class="eq">\[ \Sigma_e = \operatorname{diag}\!\Big(\sigma^2_{o(r)}\; e^{\,\eta_{o(r)}\, z_r}\Big) + \begin{pmatrix} 0 & 0 \\ 0 & \sigma_D^2 K_D \end{pmatrix}, \qquad z_r = \frac{|f_r| - 10}{10} \]</div>
+  <p>The diagonal of \(\Cov(e)\) is each race's own leftover miss, set by office and slightly smaller in lopsided races (\(\eta_o \lt 0\); a House race gets about 1.08× in an even race and 0.85× at 30 points). For incumbents' races it is reduced by the incumbency draw's variance, which moves into the shared \(u\) (section 5). The \(\sigma_D^2 K_D\) part correlates the misses of similar House districts across state lines. It sits inside \(\Cov(e)\) rather than as its own variables because similar districts don't form fixed groups the way states do.</p>
+  <p>\(K\) is the state similarity matrix. Each state is described by 46 characteristics in nine groups (race and ethnicity, education, income and economy, age and family, urbanicity, industry mix, religion and union membership, immigration and language, location), each standardized across states. For states \(s\) and \(t\), with \(z_{s,j}\) state \(s\)'s standardized value of characteristic \(j\) and \(n_g\) the number of characteristics in group \(g\):</p>
+  <div class="eq">\[ d(s,t)^2 = \sum_{g=1}^{9} \frac{1}{n_g} \sum_{j \in g} \big(z_{s,j} - z_{t,j}\big)^2, \qquad \tilde K(s,t) = \exp\!\left(-\frac{d(s,t)^2}{2\,\bar d^{\,2}}\right) \]</div>
+  <p>Each group contributes the average squared difference of its characteristics, so every group counts equally whatever its size (industry's 11 characteristics weigh the same as education's 3). \(\bar d\) is the median distance between states. \(\tilde K\) is then centered so the average off-diagonal correlation is about zero (what all states share is the national term) and projected to the nearest valid correlation matrix, giving \(K\).</p>
+  <div class="eq">\[ K_D(i,j) = \exp\!\left( -\tfrac12 \left[ \Big(\frac{\ell_i - \ell_j}{12}\Big)^2 + \Big(\frac{\Delta_i - \Delta_j}{4}\Big)^2 \right] \right) \]</div>
+  <p>Poll averages are measurements of the margins. Each race's average \(\bar y_r\) (section 6) enters as its surprise against the fundamentals, \(y_r = \bar y_r - f_r\): how far the polls sit from the no-polls forecast. The generic-ballot average \(\bar y_{\text{gen}}\) enters the same way against the national forecast \(\hat N_h\). Each surprise measures the same deviation as the race's margin, plus polling error \(\varepsilon\):</p>
+  <div class="eq">\[ y_r \equiv \bar y_r - f_r = \underbrace{\beta_{N,o(r)} N_h + S_{s(r)} + e_r + (\text{incumbency})}_{L_r x \;=\; m_r - f_r} + \varepsilon_r, \qquad \bar y_{\text{gen}} - \hat N_h = N_h + \varepsilon_{\text{gen}} \]</div>
+  <p>Polling errors are \(\varepsilon \sim \mathcal N(0, \Omega)\):</p>
+  <div class="eq">\[ \Omega = \sigma_{bN}^2\, \mathbf 1\mathbf 1^{\!\top} + \sigma_{bS}^2\, K_{\text{obs}} + \operatorname{diag}(v), \qquad
+  v_r = \psi_{\text{poll}}\left(\theta_\infty + \frac{\theta_{1,o}}{n_r}\right) e^{\,\gamma \bar\rho_r} + \text{SE}_r^2 + \theta_u\, u_r^2 \]</div>
+  <p>The race-level polling error \(v_r\), term by term (2026 values):</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Term</th><th>Meaning</th><th>2026</th></tr></thead>
+    <tbody>
+      <tr><td>\(\psi_{\text{poll}}\)</td><td>Overall multiplier on the pollster terms, from the spread fit (section 9)</td><td class="v">0.43</td></tr>
+      <tr><td>\(\theta_\infty\)</td><td>Error that stays no matter how many pollsters weigh in</td><td class="v">1.0</td></tr>
+      <tr><td>\(\theta_{1,o}/n_r\)</td><td>Error that averages out as more distinct pollsters (\(n_r\)) poll the race, by office</td><td class="v">Senate 44.3, House 41.5, president 59.1</td></tr>
+      <tr><td>\(e^{\gamma \bar\rho_r}\)</td><td>Reliability: \(\bar\rho_r\) is the weighted average score of the race's pollsters (negative = more accurate than peers), so a less reliable mix gets more variance</td><td class="v">\(\gamma\) = 3.0</td></tr>
+      <tr><td>\(\text{SE}_r^2\)</td><td>Sampling variance of the weighted average (section 6)</td><td class="v">per race</td></tr>
+      <tr><td>\(\theta_u u_r^2\)</td><td>Undecided voters: \(u_r\) is the average undecided share in points, so 10% undecided adds 6.4</td><td class="v">\(\theta_u\) = 0.064</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Example: a Senate race polled by 4 pollsters of average reliability, 5% undecided, sampling variance 2: \(v_r = 0.43(1 + 44.3/4) + 2 + 0.064 \cdot 25 \approx 8.8\), about ±3 points before the shared misses.</p>
+  <p>\(\sigma_{bN}^2\) is the industry-wide miss shared by every poll; \(\sigma_{bS}^2 K_{\text{obs}}\) the regional miss, where \(K_{\text{obs}}\) is \(K\) indexed by each poll's state (polls in the same state share it fully); \(v_r\) the race-level error. The generic ballot's own error variance is \(v_{\text{gen}} = \sigma_{\text{gen}}^2 + \text{SE}^2_{\text{gen}} + \theta_u u^2\). It shares the industry-wide miss but has no state, so with the \(P\) polled races first and the generic ballot last:</p>
+  <div class="eq">\[ \Omega = \sigma_{bN}^2\, \mathbf 1\mathbf 1^{\!\top} + \begin{pmatrix} \sigma_{bS}^2 K_{\text{obs}} + \operatorname{diag}(v) & 0 \\ 0 & v_{\text{gen}} \end{pmatrix} \]</div>
+  <p>Polling and fundamentals errors in the same race can miss in the same direction. This is the matrix \(C = \Cov(x, \varepsilon)\): it has one row per entry of \(x\) and one column per poll average, and its only nonzero entries pair a race's own term \(e_r\) with that race's poll average:</p>
+  <div class="eq">\[ C_{e_r,\, r} = -c_r, \qquad c_r = \min\!\Big( \rho_{o}\sqrt{\big(\sigma_S^2 + \sigma^2_{e,r} + \sigma_D^2\,\mathbb 1[\text{House}]\big)\,(\sigma_{bS}^2 + v_r)},\;\; 0.9\sqrt{\sigma^2_{e,r}\, v_r} \Big), \qquad \text{all other entries } 0 \]</div>
+  <p>In block form, order the race terms with the \(P\) polled races first, \(e = (e_{\mathcal P}, e_{\text{unpolled}})\). Rows of \(C\) follow \(x\); columns are the polled races' averages, then the generic ballot:</p>
+  <div class="eq">\[ C \;=\; \begin{array}{r} n \\ S \\ e_{\mathcal P} \\ e_{\text{unpolled}} \\ u \end{array}
+  \!\!\begin{array}{c} \text{polled races} \quad \text{generic} \\[-2pt] \begin{pmatrix} 0 & \;\;0\;\; \\ 0 & 0 \\ -\operatorname{diag}(c_1, \dots, c_P) & 0 \\ 0 & 0 \\ 0 & 0 \end{pmatrix} \end{array} \]</div>
+  <p>Only one block is nonzero: race \(r\)'s own term against race \(r\)'s own poll average, \(-c_r\) on the diagonal. A poll's error is unrelated to the national, state and incumbency terms and to every other race's term, and the generic ballot's error is unrelated to all of them.</p>
+  <p>\(\rho_o\) is the correlation, by office, between how far a race's fundamentals and its polls missed in past cycles (Senate 0.12, House 0.17, president 0.39). The first term turns that correlation into a covariance using the fundamentals variance (state, race and district terms) and the poll variance (regional and race-level). The cap keeps the joint covariance valid. The sign is negative because the fundamentals error is \(f_r - m_r = -(\text{deviation})\): when the polls overstate a candidate, the fundamentals tend to as well, so the true deviation \(e_r\) runs against the polling error.</p>
+</section>
+
+<section id="update">
+  <h2>8. Combining polls and fundamentals</h2>
+  <p>Stack every poll surprise into one vector and write the model for all of them at once:</p>
+  <div class="eq">\[ y = L_P\, x + \varepsilon, \qquad x \sim \mathcal N(0, \Sigma), \qquad \varepsilon \sim \mathcal N(0, \Omega), \qquad C = \Cov(x, \varepsilon) \]</div>
+  <div class="eq">\[ y = \begin{pmatrix} y_{\mathcal P} \\ y_{\text{gen}} \end{pmatrix}, \qquad
+  L_P = \begin{pmatrix} E^{\top}\ell_p & E^{\top}\ell_h & E^{\top}\!A & E^{\top} & E^{\top}B \\ 0 & 1 & 0 & 0 & 0 \end{pmatrix} \]</div>
+  <dl class="where">
+    <dt>\(y\)</dt><dd>all poll surprises (each race's average minus its fundamentals, plus the generic ballot), section 7</dd>
+    <dt>\(x\)</dt><dd>the latent deviations: national, state, race-level and incumbency terms</dd>
+    <dt>\(L_P\)</dt><dd>the rows of the loading matrix \(L\) (section 7) for the polled races, plus a row for the generic ballot that is 1 on \(N_h\) and 0 elsewhere. A poll measures exactly what its race's margin is built from, so races that share entries with a polled race (its state, the national terms) move when that poll does</dd>
+    <dt>\(\Sigma\)</dt><dd>prior covariance of \(x\), how the results can deviate from the fundamentals (section 7)</dd>
+    <dt>\(\Omega\)</dt><dd>covariance of the polling errors (section 7)</dd>
+    <dt>\(C\)</dt><dd>covariance between the latent terms and the polling errors, \(C_{e_r, r} = -c_r\) (section 7): nonzero only between a race's own term and its own poll average</dd>
+  </dl>
+  <p>\(y_{\mathcal P}\) is the \(P\) polled races' surprises; with the polled races ordered first (as for \(C\)), \(E = \begin{pmatrix} I_P \\ 0 \end{pmatrix}\), so \(E^{\top} = \begin{pmatrix} I_P & 0 \end{pmatrix}\) keeps the polled races' rows of \(L\) and drops the rest. \(\ell_p, \ell_h, A, B\) are the blocks of \(L\) defined in section 7 (presidential and national loadings, state membership, incumbency loadings), and the generic-ballot row loads only on \(N_h\). Together the latent terms and the surprises are jointly Gaussian:</p>
+  <div class="eq">\[ \begin{pmatrix} x \\ y \end{pmatrix} \sim \mathcal N\!\left( \begin{pmatrix} 0 \\ 0 \end{pmatrix},\;
+  \begin{pmatrix} \Sigma & \Sigma L_P^{\top} + C \\ L_P\Sigma + C^{\top} & S_y \end{pmatrix} \right) \]</div>
+  <p>The top-right block is how each latent term moves with each surprise; the bottom-right is the surprises' own total covariance. Conditioning on the polls is the standard Gaussian update, read off these blocks:</p>
+  <div class="eq">\[ \begin{aligned}
+  S_y &= L_P\Sigma L_P^{\top} + L_P C + C^{\top} L_P^{\top} + \Omega, \qquad G = (\Sigma L_P^{\top} + C)\, S_y^{-1}, \\
+  \E[x \mid y] &= G\, y, \qquad \Var[x \mid y] = \Sigma - G\,(L_P\Sigma + C^{\top}).
+  \end{aligned} \]</div>
+  <dl class="where">
+    <dt>\(S_y\)</dt><dd>how much the poll surprises are expected to vary in total: the true deviations they see, the polling errors, and the overlap between the two</dd>
+    <dt>\(\Sigma L_P^{\top} + C\)</dt><dd>how each latent term moves with each poll surprise</dd>
+    <dt>\(G\)</dt><dd>the gain: how many points each latent term moves per point of each poll surprise. It is a regression of \(x\) on \(y\)</dd>
+    <dt>\(\E[x \mid y]\), \(\Var[x \mid y]\)</dt><dd>the updated deviations and their remaining uncertainty; each race's forecast is \(f_r + L_r\,\E[x \mid y]\)</dd>
+  </dl>
+  <p>There is no separate blending weight: how much a race leans on its polls follows from these variances. A race with several reliable recent pollsters has small \(v_r\), so its surprise gets a large gain; an unpolled race moves only through the terms it shares with polled races (national, state, similar districts, incumbency).</p>
+  <h3>Uncertainty in the industry-wide miss</h3>
+  <p>The size of the industry-wide polling miss \(\sigma_{bN}^2\) is estimated from few cycles, so the update is run for five plausible values and the results are mixed:</p>
+  <div class="eq">\[ \sigma^2_{bN,j} = \frac{\nu\, \hat\sigma^2_{bN}}{\chi^2_{\nu}\!\big(1 - \tfrac{j - 1/2}{5}\big)}, \quad j = 1,\dots,5, \qquad w_j \propto \mathcal N\big(y;\, 0,\, S_{y,j}\big) \]</div>
+  <dl class="where">
+    <dt>\(\hat\sigma^2_{bN}\)</dt><dd>the estimated size of the industry-wide miss (6.55 in 2026, section 9)</dd>
+    <dt>\(\nu\)</dt><dd>how much evidence that estimate rests on, in cycles: 16 in 2026 (13 past cycles of polling misses, 12 degrees of freedom, plus 4 cycles' worth of prior)</dd>
+    <dt>\(\chi^2_\nu(\cdot)\)</dt><dd>the chi-square quantile function. If \(\hat\sigma^2_{bN}\) rests on \(\nu\) cycles, the true value is spread as a scaled inverse chi-square around it; the five values are that distribution's 10th, 30th, 50th, 70th and 90th percentiles, each equally likely to begin with</dd>
+    <dt>\(S_{y,j}\)</dt><dd>the total poll variance \(S_y\) recomputed with \(\sigma^2_{bN,j}\)</dd>
+    <dt>\(w_j\)</dt><dd>each value's weight: how likely this year's poll surprises are under it. If polls everywhere sit unusually far from the fundamentals, larger misses gain weight</dd>
+  </dl>
+  <p>The forecast is the \(w_j\)-weighted mixture of the five Gaussian updates, and simulations first draw which \(j\) applies.</p>
+</section>
+
+<section id="spreads">
+  <h2>9. Fitting the spreads</h2>
+  <p>The variance pieces are fit by the likelihood of past results. For target cycle \(T\), a parameter vector \(\theta\) holds log multipliers on each piece (national, state, district similarity, race-level by office, industry-wide miss, regional miss, race-level poll error, generic-ballot error) plus the lopsidedness slopes \(\eta_o\):</p>
+  <div class="eq">\[ \hat\theta_T = \arg\max_\theta \sum_{c \lt T} 2^{-(T-c)/4} \sum_{d \in \{0,14,35,56,84\}} \log p\!\left(m_{c} \mid y_{c,d};\, \theta\right) \;-\; \tfrac12 \lVert\theta\rVert^2 \]</div>
+  <p>\(p(m_c \mid y_{c,d})\) is the posterior predictive density of cycle \(c\)'s actual margins given the polls released \(d\) days before its election, using the industry-miss mixture. Only races whose fundamentals margin is within 20 points enter. The national environment's spread is held out of this fit and taken from past national misses, \(\hat\sigma^2 = \sum_c w_c\,\text{miss}_c^2 / \sum_c w_c\) with a 12-year half-life.</p>
+  <h3>2026 values</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Piece</th><th>Symbol</th><th>Variance (pts²)</th><th>Spread (pts)</th></tr></thead>
+    <tbody>
+      <tr><td>National House environment</td><td>\(\sigma_h\)</td><td class="v">26.0</td><td class="v">5.10</td></tr>
+      <tr><td>National presidential environment</td><td>\(\sigma_p\)</td><td class="v">17.2</td><td class="v">4.14</td></tr>
+      <tr><td>State</td><td>\(\sigma_S^2\)</td><td class="v">6.42</td><td class="v">2.53</td></tr>
+      <tr><td>Similar districts</td><td>\(\sigma_D^2\)</td><td class="v">1.53</td><td class="v">1.24</td></tr>
+      <tr><td>Race-level, Senate</td><td>\(\sigma^2_{\text{sen}}\)</td><td class="v">58.4</td><td class="v">7.64</td></tr>
+      <tr><td>Race-level, House race</td><td>\(\sigma^2_{\text{house}}\)</td><td class="v">32.8</td><td class="v">5.73</td></tr>
+      <tr><td>Race-level, House race (redrawn map)</td><td></td><td class="v">31.0</td><td class="v">5.57</td></tr>
+      <tr><td>Race-level, president (state)</td><td></td><td class="v">14.9</td><td class="v">3.86</td></tr>
+      <tr><td>Lopsidedness slope, Senate / House</td><td>\(\eta_o\)</td><td class="v" colspan="2">−0.036 / −0.081</td></tr>
+      <tr><td>Industry-wide poll miss</td><td>\(\sigma_{bN}^2\)</td><td class="v">6.55</td><td class="v">2.56</td></tr>
+      <tr><td>Regional poll miss</td><td>\(\sigma_{bS}^2\)</td><td class="v">9.51</td><td class="v">3.08</td></tr>
+      <tr><td>Race-level poll error multiplier</td><td>\(\psi_{\text{poll}}\)</td><td class="v" colspan="2">0.434</td></tr>
+      <tr><td>Generic-ballot error</td><td>\(\sigma^2_{\text{gen}}\)</td><td class="v">4.33</td><td class="v">2.08</td></tr>
+      <tr><td>Poll error floor / per-pollster term (Senate, House, president)</td><td>\(\theta_\infty\) / \(\theta_{1,o}\)</td><td class="v" colspan="2">1.0 / 44.3, 41.5, 59.1</td></tr>
+      <tr><td>Reliability effect / undecided term</td><td>\(\gamma\) / \(\theta_u\)</td><td class="v" colspan="2">3.0 / 0.064</td></tr>
+      <tr><td>Poll–fundamentals error correlation (Senate, House, president)</td><td>\(\rho_o\)</td><td class="v" colspan="2">0.12, 0.17, 0.39</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">\(\gamma\) sits at its upper limit of 3.0 and \(\theta_\infty\) at its floor of 1.0.</p>
+</section>
+
+<section id="sims">
+  <h2>10. Simulation and seats</h2>
+  <p>Each simulation draws \(x^{(i)}\) from the posterior mixture and sets \(m^{(i)}_r = f_r + L_r x^{(i)}\). Incumbency enters through its lognormal directly: an incumbent's race gets \(\iota_r\big(e^{\mu_T + \sqrt{v_T}\,u^{(i)}} - \E[e^{\mu_T + \sqrt{v_T} u}]\big)\) in place of its linearized term. Seat totals and control follow per simulation:</p>
+  <div class="eq">\[ \text{Senate}^{(i)} = H_D + \sum_{r} \mathbb 1\big[m^{(i)}_r > 0\big], \qquad
+  \text{D control} \iff \text{Senate}^{(i)} \ge 51 \;\text{ or }\; \big(\text{Senate}^{(i)} = 50 \text{ and the vice president is a Democrat}\big) \]</div>
+  <p>\(H_D\) is the Democratic seats not up this cycle; independents running in the Democratic lane count as Democrats. House control is 218 or more Democratic seats. Chances are shares of 10,000 simulations on the live day (2,000 for earlier dates and past cycles). The page's calls keep only the simulations where the called race went the chosen way.</p>
+</section>
+
+<section id="fixed">
+  <h2>11. Fixed settings</h2>
+  <p>These are set by hand rather than fit:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Recency half-life: race fundamentals / spread fit / national spread</td><td class="v">8 / 4 / 12 years</td></tr>
+      <tr><td>Races entering the spread fit</td><td class="v">|f| ≤ 20</td></tr>
+      <tr><td>Poll recency time constant / maximum poll age</td><td class="v">14 / 120 days</td></tr>
+      <tr><td>Reliability weight in poll averages</td><td class="v">e^(−2ρ)</td></tr>
+      <tr><td>Money cap / money start / scale grid</td><td class="v">±4 / 2002 / $0.01–10</td></tr>
+      <tr><td>Switch to election-day fundamentals</td><td class="v">15 days out</td></tr>
+      <tr><td>District kernel length-scales (lean, swing)</td><td class="v">12, 4 pts</td></tr>
+      <tr><td>Likely-voter gap prior spread / pair noise</td><td class="v">1.2 / 2.5 pts</td></tr>
+      <tr><td>Industry-miss mixture points</td><td class="v">5</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Tested and switched off: calibration scale factors, fat-tailed race errors, asymmetric race shapes, trend adjustment of stale polls, shifts for partisan-sponsored polls, in-cycle house-effect updates, state economy inputs, turnout-composition shifts.</p>
+</section>
+</div>
+</body>
+</html>

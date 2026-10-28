@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What's New</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header with the two dates; headline strip (before -> after); data-pull status; new polls, races that
+   moved, fundamentals changes; the written summary last. Same identity as the Senate Explorer. */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --ink: #1b1f27; --muted: #5d6573; --line: #d9dde4;
+  --dem: #2457c5; --rep: #c8322f; --ok: #1f7a4d; --bad: #b3261e; --focus: #7a4fd6;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --ok: #4fbf87; --bad: #ef6b62; --focus: #a98bf0; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --ok: #4fbf87; --bad: #ef6b62; --focus: #a98bf0; color-scheme: dark }
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45 }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 20px 48px; padding-inline: 16px; display: grid; gap: 18px }
+h1 { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .01em; margin: 0; line-height: 1 }
+h2 { font-family: var(--display); font-weight: 600; font-size: 20px; margin: 0; letter-spacing: .02em }
+.sub { color: var(--muted); font-size: 13px }
+.num { font-variant-numeric: tabular-nums }
+header { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justify-content: space-between }
+.ghost { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; text-decoration: none; color: inherit }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+.strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.stat { background: var(--surface); padding: 12px 16px; display: grid; gap: 2px; min-width: 0 }
+.stat .k { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted) }
+.stat .v { font-family: var(--display); font-size: 30px; font-weight: 700; line-height: 1.05 }
+.stat .d { font-size: 12px; color: var(--muted) }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; display: grid; gap: 10px; align-content: start }
+.panel-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap }
+.pulls { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px }
+.pulls span b { font-weight: 600 }
+.okc { color: var(--ok) } .badc { color: var(--bad) }
+.tbl-wrap { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; min-width: 760px }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap }
+th.r, td.r { text-align: right }
+td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; font-variant-numeric: tabular-nums }
+tr.grp td { font-family: var(--display); font-weight: 600; font-size: 15px; padding-top: 12px; color: var(--muted); border-bottom: 0 }
+.dem { color: var(--dem) } .rep { color: var(--rep) }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 0 5px; border: 1px solid currentColor }
+.arrow { color: var(--muted); padding: 0 4px }
+.delta { font-size: 12px; font-weight: 600 }
+.empty { color: var(--muted); font-size: 13px; padding: 4px 0 }
+.blurb { font-size: 15px; line-height: 1.6; max-width: 78ch; display: grid; gap: 10px }
+.blurb p { margin: 0 }
+.parts { color: var(--muted); font-size: 12px }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>What's new</h1>
+      <div class="sub" id="dates"></div>
+    </div>
+    <div><a class="ghost" href="index.html">← Explorer</a></div>
+  </header>
+
+  <section class="strip" id="strip" aria-label="Headline changes"></section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>Data pulled</h2><span class="sub">Sources refreshed for this run</span></div>
+    <div class="pulls" id="pulls"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>New polls</h2><span class="sub">Polls in today's averages that weren't in the previous run. Adjusted = after house effect and likely-voter adjustments; weight = its share of that race's average.</span></div>
+    <div class="tbl-wrap"><table id="t-polls"><thead><tr>
+      <th>Race</th><th>Pollster</th><th>Ended</th><th class="r">Sample</th><th class="r">D</th><th class="r">R</th><th class="r">Margin</th><th class="r">Adjusted</th><th class="r">Weight</th><th class="r">Race average</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>Races that moved</h2><span class="sub">Chance moved at least 1 point, or the race got a new poll</span></div>
+    <div class="tbl-wrap"><table id="t-races"><thead><tr>
+      <th>Race</th><th>Candidates</th><th class="r">Dem chance</th><th class="r">Forecast margin</th><th class="r">Poll average</th><th class="r">No-polls forecast</th><th class="r">New polls</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>Fundamentals changes</h2><span class="sub">No-polls forecast moved at least 0.2 points: which inputs moved it, and the money behind each side</span></div>
+    <div class="tbl-wrap"><table id="t-fund"><thead><tr>
+      <th>Race</th><th class="r">No-polls forecast</th><th>What moved it</th><th class="r">Dem money</th><th class="r">Rep money</th><th class="r">Outside for D</th><th class="r">Outside for R</th>
+    </tr></thead><tbody></tbody></table></div>
+    <div id="noms"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><h2>Summary</h2><span class="sub" id="blurb-by"></span></div>
+    <div class="blurb" id="blurb"></div>
+  </section>
+</div>
+
+<script src="whatsnew_2026.js"></script>
+<script>
+(() => {
+const W = window.WHATSNEW;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const fmtDate = d => d ? new Date(d + "T12:00:00").toLocaleDateString("en-US", {month: "short", day: "numeric"}) : "—";
+const mg = (x, n = 1) => x == null ? "—" : x === 0 ? "Even" : `<span class="${x > 0 ? "dem" : "rep"}">${x > 0 ? "D" : "R"}+${Math.abs(x).toFixed(n)}</span>`;
+const pct = x => x == null ? "—" : `${(100 * x).toFixed(x > 0.995 || x < 0.005 ? 1 : 0)}%`;
+const money = x => x == null ? "—" : x < 500 ? "$0" : x >= 1e6 ? `$${(x / 1e6).toFixed(1)}M` : `$${Math.round(x / 1e3)}K`;
+const sgn = (x, n = 1, unit = "") => x == null ? "" : `${x > 0 ? "+" : x < 0 ? "−" : "±"}${Math.abs(x).toFixed(n)}${unit}`;
+const dcls = x => x > 0 ? "dem" : x < 0 ? "rep" : "";
+const pair = (a, b, f) => `${f(a)}<span class="arrow">→</span>${f(b)}`;
+
+if (!W) { document.querySelector(".wrap").insertAdjacentHTML("beforeend", "<div class='empty'>No comparison yet: this run had no earlier day to compare with.</div>"); return; }
+$("dates").textContent = `${fmtDate(W.prev_asof)} → ${fmtDate(W.asof)}, 2026 · compared with the previous forecast day`;
+
+const H = W.headline, N = W.national;
+const stat = (k, a, b, f, df) => `<div class="stat"><span class="k">${k}</span><span class="v num">${f(b)}</span>
+  <span class="d">was ${f(a)} · <span class="delta ${dcls(b - a)}">${df(b - a)}</span></span></div>`;
+$("strip").innerHTML = [
+  stat("Senate: Dem control", H.p_senate_dem[0], H.p_senate_dem[1], pct, d => sgn(100 * d, 1, " pts")),
+  stat("Senate: Dem seats", H.senate_seats_mean[0], H.senate_seats_mean[1], x => x.toFixed(1), d => sgn(d, 1)),
+  stat("House: Dem control", H.p_house_dem[0], H.p_house_dem[1], pct, d => sgn(100 * d, 1, " pts")),
+  stat("House: Dem seats", H.house_seats_mean[0], H.house_seats_mean[1], x => x.toFixed(1), d => sgn(d, 1)),
+  stat("Generic ballot", N.generic[0], N.generic[1], x => x == null ? "—" : (x > 0 ? "D+" : "R+") + Math.abs(x).toFixed(1), d => sgn(d, 1)),
+  stat("Net approval", N.approval[0], N.approval[1], x => x == null ? "—" : sgn(x, 1), d => sgn(d, 1)),
+].join("");
+
+const pulls = [];
+const P = W.refreshed.polls;
+if (P) {
+  for (const [k, v] of Object.entries(P.status || {})) pulls.push(`<span><b>${esc(k)}</b> <span class="${v === "ok" ? "okc" : "badc"}">${v === "ok" ? "✓ updated" : "✕ " + esc(v)}</span></span>`);
+  const nw = P.newest_poll || P.newest || {};
+  pulls.push(`<span class="sub">newest poll: ${Object.entries(nw).map(([k, v]) => `${esc(k)} ${fmtDate(v)}`).join(" · ")}</span>`);
+}
+const Fd = W.refreshed.fundamentals;
+if (Fd && Fd.date === W.asof) {
+  for (const [k, v] of Object.entries(Fd.steps || {})) pulls.push(`<span><b>${esc(k.replace("_", " "))}</b> <span class="${v.ok ? "okc" : "badc"}">${v.ok ? "✓" : "✕ kept previous"}</span></span>`);
+} else pulls.push(`<span class="sub">Fundamentals inputs (money, economy, nominees) not re-pulled this run${Fd ? ` · last pulled ${fmtDate(Fd.date)}` : ""}</span>`);
+$("pulls").innerHTML = pulls.join("");
+
+const groups = [["sen", "Senate"], ["house", "House"], ["generic", "Generic ballot"]];
+let html = "";
+for (const [o, name] of groups) {
+  const ps = W.new_polls.filter(p => p.office === o).sort((a, b) => o === "generic" ? b.end.localeCompare(a.end) : 0);
+  if (!ps.length) continue;
+  html += `<tr class="grp"><td colspan="10">${name} · ${ps.length}</td></tr>`;
+  for (const p of ps) html += `<tr><td>${esc(p.label)}</td><td>${esc(p.pollster)}${p.partisan ? ` <span class="tag ${p.partisan === "D" ? "dem" : "rep"}" title="Sponsored by a ${p.partisan === "D" ? "Democratic" : "Republican"}-aligned group">${p.partisan}</span>` : ""}</td>
+    <td>${fmtDate(p.end)}</td><td class="r">${p.n ? p.n.toLocaleString() + " " + esc(p.pop) : esc(p.pop)}</td><td class="r">${p.dem ?? "—"}</td><td class="r">${p.rep ?? "—"}</td>
+    <td class="r">${mg(p.raw, 0)}</td><td class="r">${mg(p.adj)}</td><td class="r">${p.share != null ? Math.round(100 * p.share) + "%" : "—"}</td>
+    <td class="r">${pair(p.avg_before, p.avg_after, x => mg(x))}</td></tr>`;
+}
+$("t-polls").querySelector("tbody").innerHTML = html || `<tr><td colspan="10" class="empty">No new polls since the previous run.</td></tr>`;
+
+html = "";
+for (const [o, name] of groups.slice(0, 2)) {
+  const rs = W.races.filter(r => r.office === o);
+  if (!rs.length) continue;
+  html += `<tr class="grp"><td colspan="7">${name} · ${rs.length}</td></tr>`;
+  for (const r of rs) {
+    const dp = r.p_after - r.p_before;
+    html += `<tr><td>${esc(r.label)}</td><td><span class="dem">${esc(r.dem)}</span> v <span class="rep">${esc(r.rep)}</span></td>
+      <td class="r">${pair(r.p_before, r.p_after, pct)} <span class="delta ${dcls(dp)}">${sgn(100 * dp, 0)}</span></td>
+      <td class="r">${pair(r.mean_before, r.mean_after, x => mg(x))}</td><td class="r">${pair(r.avg_before, r.avg_after, x => mg(x))}</td>
+      <td class="r">${pair(r.fund_before, r.fund_after, x => mg(x))}</td><td class="r">${r.new_polls || "—"}</td></tr>`;
+  }
+}
+$("t-races").querySelector("tbody").innerHTML = html || `<tr><td colspan="7" class="empty">No race moved by a point or more.</td></tr>`;
+
+html = "";
+for (const f of W.fundamentals) {
+  const parts = Object.entries(f.parts).slice(0, 4).map(([k, v]) => `${esc(k)} <span class="${dcls(v)}">${sgn(v)}</span>`).join(" · ");
+  const mm = k => { const [a, b] = f.money[k] || []; return a == null && b == null ? "—" : b === a ? money(b) : `${money(b)} <span class="parts">(${sgn(((b || 0) - (a || 0)) / 1e6, 1, "M")})</span>`; };
+  html += `<tr><td>${esc(f.label)}</td><td class="r">${pair(f.fund_before, f.fund_after, x => mg(x))}</td><td class="parts">${parts || "—"}</td>
+    <td class="r">${mm("dem_money")}</td><td class="r">${mm("rep_money")}</td><td class="r">${mm("dem_out")}</td><td class="r">${mm("rep_out")}</td></tr>`;
+}
+$("t-fund").querySelector("tbody").innerHTML = html || `<tr><td colspan="7" class="empty">No race's no-polls forecast moved by 0.2 points or more.</td></tr>`;
+$("noms").innerHTML = W.nominees.length ? `<div class="sub">Nominee changes: ${W.nominees.map(n => `${esc(n.label)} (${n.side === "dem" ? "D" : "R"}): ${esc(n.before)} → ${esc(n.after)}`).join(" · ")}</div>` : "";
+
+if (W.blurb && W.blurb.text) {
+  $("blurb").innerHTML = W.blurb.text.split(/\n\s*\n/).map(p => `<p>${esc(p).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")}</p>`).join("");
+  $("blurb-by").textContent = "Written from the tables above";
+} else $("blurb").innerHTML = `<div class="empty">No written summary for this run yet.</div>`;
+})();
+</script>
+</body>
+</html>

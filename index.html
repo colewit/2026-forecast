@@ -1091,22 +1091,32 @@ function jars(evD, pD, res) {
 }
 let chamberShown = false;
 function dropBalls(root) {
-  // jar balls: a small 1-D physics sim per column. Balls are released bottom row first from above the jar, fall under
-  // gravity, and can't pass through the ball beneath (they land on it, even while it is still bouncing) or push up
-  // into the ball above; each bounce loses most of its speed until the ball settles in its slot.
+  // jar balls: a small physics sim. Balls are released bottom row first from above the jar and fall under gravity.
+  // Every ball collides with its real neighbours (the rows are offset like a honeycomb, so a ball rests on up to two
+  // balls below): it can't fall into any ball beneath it or bounce up into any ball above it, at the true
+  // centre-to-centre distance. Bounces lose most of their speed until each ball settles in its slot.
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const balls = [...root.querySelectorAll("circle.ball")]; if (!balls.length) return;
-  const G = 700, E = 0.38, cols = new Map();
-  balls.forEach(b => { const k = b.parentNode.dataset.j + ":" + b.dataset.c; if (!cols.has(k)) cols.set(k, []); cols.get(k).push(b); });
-  const st = [];
-  for (const list of cols.values()) {
-    list.sort((a, b) => a.dataset.r - b.dataset.r);
-    const objs = list.map((b, k) => ({ b, rest: +b.getAttribute("cy"), y: +b.dataset.y0, v: 0, sp: +b.dataset.sp,
-      t0: 0.25 + k * 0.11 + (+b.dataset.c) * 0.03 + Math.random() * 0.03, live: false }));
-    objs.forEach((o, k) => { o.below = objs[k - 1] || null; o.above = objs[k + 1] || null; });
+  const all = [...root.querySelectorAll("circle.ball")]; if (!all.length) return;
+  const G = 700, E = 0.38, st = [];
+  const jars = new Map();
+  all.forEach(b => { const k = b.parentNode.dataset.j; if (!jars.has(k)) jars.set(k, []); jars.get(k).push(b); });
+  for (const list of jars.values()) {
+    const objs = list.map(b => ({ b, x: +b.getAttribute("cx"), rest: +b.getAttribute("cy"), R: +b.getAttribute("r"), row: +b.dataset.r, col: +b.dataset.c,
+      y: +b.dataset.y0, v: 0, live: false }));
+    objs.forEach(o => { o.t0 = 0.25 + o.row * 0.11 + o.col * 0.03 + Math.random() * 0.03; });
+    // neighbours: touching balls in the row below (supports) and above; separation never more than their slots allow
+    for (const o of objs) {
+      o.down = []; o.up = [];
+      for (const q of objs) {
+        const dx = Math.abs(q.x - o.x); if (dx >= 2 * o.R) continue;
+        const sep = Math.min(Math.sqrt(4 * o.R * o.R - dx * dx), Math.abs(q.rest - o.rest));
+        if (q.row === o.row - 1) o.down.push([q, sep]); else if (q.row === o.row + 1) o.up.push([q, sep]);
+      }
+    }
     st.push(...objs);
   }
-  st.forEach(o => { o.b.style.opacity = 0; o.b.style.transform = `translateY(${o.y - o.rest}px)`; });
+  st.sort((a, b) => a.row - b.row);                       // resolve lower balls first each frame
+  st.forEach(o => { o.b.style.opacity = 0; o.b.style.transform = `translateY(${(o.y - o.rest).toFixed(2)}px)`; });
   let t = 0, last = null;
   const step = now => {
     if (!document.contains(st[0].b)) return;                 // redrawn meanwhile
@@ -1115,12 +1125,15 @@ function dropBalls(root) {
     for (const o of st) {
       if (!o.live) { if (t < o.t0) { moving++; continue; } o.live = true; o.b.style.opacity = 1; }
       o.v += G * dt; o.y += o.v * dt;
-      const floor = o.below && o.below.live ? Math.min(o.rest, o.below.y - o.sp) : o.rest;
+      let floor = o.rest;
+      for (const [q, sep] of o.down) if (q.live) floor = Math.min(floor, q.y - sep);
       if (o.y > floor) { o.y = floor; if (o.v > 0) o.v = o.v > 40 ? -o.v * E : 0; }
-      if (o.above && o.above.live && o.y < o.above.y + o.sp) { o.y = o.above.y + o.sp; if (o.v < 0) o.v = 0; }
+      let ceil = -Infinity;
+      for (const [q, sep] of o.up) if (q.live) ceil = Math.max(ceil, q.y + sep);
+      if (o.y < ceil) { o.y = ceil; if (o.v < 0) o.v = 0; }
       if (Math.abs(o.y - o.rest) > 0.05 || Math.abs(o.v) > 0.5) moving++;
-      o.b.style.transform = `translateY(${(o.y - o.rest).toFixed(2)}px)`;
     }
+    for (const o of st) if (o.live) o.b.style.transform = `translateY(${(o.y - o.rest).toFixed(2)}px)`;
     if (moving) requestAnimationFrame(step); else st.forEach(o => { o.b.style.transform = ""; o.b.style.opacity = ""; });
   };
   requestAnimationFrame(step);

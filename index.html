@@ -68,8 +68,10 @@ label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px
 /* header toolbar: one height, one radius, one type size; selects with a drawn chevron; page links as quiet text links
    pushed to the right */
 .hd-right { display: grid; gap: 8px; justify-items: end; margin-left: auto; min-width: 0; max-width: 100% }
-header { margin-bottom: 26px; display: grid !important; grid-template-columns: auto minmax(0, 1fr); align-items: end; column-gap: 28px }   /* title left, controls right; white space before the chambers */
-@media (max-width: 1100px) { header { grid-template-columns: minmax(0, 1fr) } header .hd-right { justify-items: start; margin-left: 0 } header .hd-right .controls, header .toplinks { justify-content: flex-start } }
+header { margin-bottom: 26px; align-items: end }    /* white space between the title row and the chambers */
+.hd-right { flex: 0 0 auto }                        /* the controls stay one bar: beside the title if there is room, else under it */
+.hd-right .controls, .hd-right .tb-group { flex-wrap: nowrap }
+.hd-right .tb-group { padding: 0 0 0 14px }
 .controls { flex: 0 1 auto; justify-content: flex-end; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 0; background: var(--surface);
   border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent) }
 .tb-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 14px; min-width: 0 }
@@ -87,13 +89,10 @@ html.plain .panel, html.plain .controls, html.plain .strip, html.plain .stat, ht
 html.plain .strip { gap: 0 }
 html.plain .controls { padding: 0 }
 html.plain .tb-group:last-child { padding-right: 0 }
-html.plain .hd-right .tb-group { padding: 0 0 0 12px }
+html.plain .hd-right .tb-group { padding: 0 0 0 14px }
 html.plain .hd-right .tb-group + .tb-group { border-left: 0 }
 .hd-right .controls { row-gap: 8px }
-@media (min-width: 1101px) {      /* beside the title: compact (captions dropped; the controls explain themselves) */
-  .hd-right label.sel { font-size: 0; gap: 0 } .hd-right label.sel select { font-size: 14px }
-  .hd-right .tb-k { display: none }
-  h1 { font-size: 44px } }
+
 html.plain .panel { padding-left: 0; padding-right: 0 }
 html.plain .main, html.plain .wrap > section + section { row-gap: 28px }
 .tbl-more { display: flex; justify-content: center; padding-top: 4px }
@@ -352,7 +351,8 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   .controls .ghost { padding: 9px 12px }
   .tb-group { flex: 1 1 100%; padding: 0 } .tb-group + .tb-group { border-left: 0; border-top: 1px solid var(--line); padding-top: 10px }
   .toplinks { margin-left: 0; justify-content: flex-start }
-  .hd-right { margin-left: 0; width: 100%; justify-items: stretch }
+  .hd-right { margin-left: 0; width: 100%; justify-items: stretch; flex: 1 1 100% }
+  .hd-right .controls, .hd-right .tb-group { flex-wrap: wrap }
   .strip { grid-template-columns: repeat(2, minmax(0, 1fr)) }
   .stat { padding: 10px 12px }
   .stat .v { font-size: 26px }

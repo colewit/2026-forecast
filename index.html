@@ -66,23 +66,33 @@ select { border: 1px solid var(--line); background: var(--surface); border-radiu
 label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted) }
 /* header toolbar: one height, one radius, one type size; selects with a drawn chevron; page links as quiet text links
    pushed to the right */
-.controls { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 0; background: var(--surface);
+.hd-right { display: grid; gap: 8px; justify-items: end; margin-left: auto; min-width: 0; max-width: 100% }
+header { margin-bottom: 26px; display: grid !important; grid-template-columns: auto minmax(0, 1fr); align-items: end; column-gap: 28px }   /* title left, controls right; white space before the chambers */
+@media (max-width: 1100px) { header { grid-template-columns: minmax(0, 1fr) } header .hd-right { justify-items: start; margin-left: 0 } header .hd-right .controls, header .toplinks { justify-content: flex-start } }
+.controls { flex: 0 1 auto; justify-content: flex-end; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 0; background: var(--surface);
   border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent) }
 .tb-group { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 14px; min-width: 0 }
 .tb-group:first-child { padding-left: 4px }
 .tb-group + .tb-group { border-left: 1px solid var(--line) }
 .tb-group:empty, .tb-group:not(:has(:not([hidden]))) { display: none }
 .tb-k { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
-.toplinks { display: flex; gap: 4px 16px; flex-wrap: wrap; align-self: start; margin-left: auto }
+.toplinks { display: flex; gap: 4px 16px; flex-wrap: wrap; justify-content: flex-end }
 .toplinks a.ghost { border: 0; background: none; padding: 2px 0; height: auto; color: var(--muted); font-size: 13px; font-weight: 500; text-decoration: none }
 .toplinks a.ghost:hover { color: var(--ink) }
-.plain-tog { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 2px 10px; font: 500 12px var(--body); cursor: pointer }
-.plain-tog[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
 /* plain page: one flat background, no panel outlines or card backgrounds (toggle in the header) */
 html.plain body { background: var(--surface) }
 html.plain .panel, html.plain .controls, html.plain .strip, html.plain .stat, html.plain .kv.pstats {
   border-color: transparent !important; box-shadow: none !important; background: transparent !important }
 html.plain .strip { gap: 0 }
+html.plain .controls { padding: 0 }
+html.plain .tb-group:last-child { padding-right: 0 }
+html.plain .hd-right .tb-group { padding: 0 0 0 12px }
+html.plain .hd-right .tb-group + .tb-group { border-left: 0 }
+.hd-right .controls { row-gap: 8px }
+@media (min-width: 1101px) {      /* beside the title: compact (captions dropped; the controls explain themselves) */
+  .hd-right label.sel { font-size: 0; gap: 0 } .hd-right label.sel select { font-size: 14px }
+  .hd-right .tb-k { display: none }
+  h1 { font-size: 44px } }
 html.plain .panel { padding-left: 0; padding-right: 0 }
 html.plain .main, html.plain .wrap > section + section { row-gap: 28px }
 .tbl-more { display: flex; justify-content: center; padding-top: 4px }
@@ -334,7 +344,8 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   .controls .seg { flex: 1 1 100% } .controls .seg button { flex: 1; padding: 9px 6px }
   .controls .ghost { padding: 9px 12px }
   .tb-group { flex: 1 1 100%; padding: 0 } .tb-group + .tb-group { border-left: 0; border-top: 1px solid var(--line); padding-top: 10px }
-  .toplinks { margin-left: 0 }
+  .toplinks { margin-left: 0; justify-content: flex-start }
+  .hd-right { margin-left: 0; width: 100%; justify-items: stretch }
   .strip { grid-template-columns: repeat(2, minmax(0, 1fr)) }
   .stat { padding: 10px 12px }
   .stat .v { font-size: 26px }
@@ -385,8 +396,8 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
         <div class="title-rule" aria-hidden="true"><i></i><i></i></div>
       </div>
     </div>
+    <div class="hd-right">
     <nav class="toplinks" aria-label="More">
-      <button class="plain-tog" id="plain-tog" aria-pressed="false" title="Remove the panel outlines and use a plain white page">Plain page</button>
       <a class="ghost" href="whatsnew.html">What's new →</a>
       <a class="ghost" href="methodology.html">Methodology →</a>
     </nav>
@@ -406,6 +417,7 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
       <div class="tb-group">
         <button class="ghost" id="result" aria-pressed="false" hidden>Show what happened</button>
       </div>
+    </div>
     </div>
   </header>
 
@@ -1414,7 +1426,8 @@ function fillSelectors() {
   const E = new Date(DS.election + "T12:00");
   $("sel-date").innerHTML = datesFor(year).map(d => {
     const days = Math.round((E - new Date(d + "T12:00")) / 864e5);
-    return `<option value="${d}" ${d === date ? "selected" : ""}>${d} · ${days === 0 ? "Election Day" : days + " days out"}${year === F.live.year && d === F.live.asof ? " (latest)" : ""}</option>`;
+    const lbl = new Date(d + "T12:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return `<option value="${d}" ${d === date ? "selected" : ""}>${lbl} · ${days === 0 ? "Election Day" : days + " days out"}${year === F.live.year && d === F.live.asof ? " (latest)" : ""}</option>`;
   }).join("");
   $("v-pres").disabled = !DS.views.pres;
   $("v-house").disabled = !(DS.views.house && DS.views.house.length);
@@ -1458,9 +1471,7 @@ function render() {
 document.querySelectorAll("[data-hm]").forEach(b => b.addEventListener("click", () => { houseMap = b.dataset.hm; buildMapLayer(); render(); }));
 $("hm-base").addEventListener("change", e => { shiftBase = e.target.value; render(); });
 $("hm-rel").addEventListener("change", () => render());
-{ let on = false; try { on = localStorage.getItem("plainPage") === "1"; } catch (e) {}
-  const set = v => { document.documentElement.classList.toggle("plain", v); $("plain-tog").setAttribute("aria-pressed", v); try { localStorage.setItem("plainPage", v ? "1" : "0"); } catch (e) {} };
-  set(on); $("plain-tog").onclick = () => set(!document.documentElement.classList.contains("plain")); }
+document.documentElement.classList.add("plain");      // plain white page, no panel outlines
 DS = prep(F.live);
 fillSelectors();
 buildMapLayer();

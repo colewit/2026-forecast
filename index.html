@@ -98,7 +98,7 @@ html.plain .main, html.plain .wrap > section + section { row-gap: 28px }
 .tbl-more { display: flex; justify-content: center; padding-top: 4px }
 /* money split bar (races table) */
 td.c-money { min-width: 190px }
-.mrow { display: grid; grid-template-columns: 50px 1fr 1fr; align-items: center; column-gap: 0; font-size: 11.5px; font-variant-numeric: tabular-nums; line-height: 1.5 }
+.mrow { display: grid; grid-template-columns: 58px 1fr 1fr; align-items: center; column-gap: 0; font-size: 11.5px; font-variant-numeric: tabular-nums; line-height: 1.5 }
 .mrow .mk { font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted) }
 .mrow .mh { display: flex; align-items: center; gap: 5px; min-width: 0 }
 .mrow .mh.d { flex-direction: row; justify-content: flex-end; padding-right: 2px; border-right: 1px solid var(--muted) }
@@ -226,6 +226,12 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
 #tbl th { white-space: normal; padding: 6px 6px 2px; vertical-align: bottom }
 #tbl td { padding: 7px 6px }
 #tbl .delta { white-space: nowrap }
+#tbl td.st { white-space: nowrap; width: 64px; font-size: 16px }                 /* district labels like NH-01 stay on one line */
+#tbl td.c-money, #tbl th[data-sort="money"] { padding-left: 32px }             /* breathing room after the polls column */
+#tbl td.c-avg, #tbl th[data-sort="avg"] { padding-right: 10px }
+#tbl td.c-mean, #tbl th[data-sort="mean"] { padding-left: 16px }
+#tbl td.c-pick, #tbl th.c-pick { padding-left: 20px }
+#tbl .mb-rel { margin-top: 2px }
 .pbar { position: relative; height: 18px; border-radius: 3px; background: var(--rep); overflow: hidden }
 .pbar i { position: absolute; inset: 0 auto 0 0; background: var(--dem) }
 .pbar b { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 6px; font-size: 11px; color: #fff; font-weight: 600 }

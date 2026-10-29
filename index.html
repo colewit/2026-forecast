@@ -159,6 +159,24 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .chambers svg { width: 100%; height: auto; display: block }
 .ch-h { display: grid; gap: 2px; justify-items: center; text-align: center }
 .ch-h h3 { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.1; margin: 0 }
+.chambers { position: relative; padding-right: 34px }
+.ch-flip { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 28px; height: 44px; border: 0; border-radius: 8px; background: none;
+  color: var(--muted); cursor: pointer; display: grid; place-items: center; padding: 0 }
+.ch-flip:hover { color: var(--ink); background: var(--bg) }
+.ch-flip:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+.ch-flip.back svg { transform: scaleX(-1) }
+.ch-panel.ch-joint { flex: 2 1 560px; max-width: 1000px }
+.ch-joint figure { position: relative }
+.ch-joint .jb { transform-box: fill-box; transform-origin: center; animation: jbIn .45s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i) * 500ms) }
+@keyframes jbIn { from { transform: scale(0); opacity: 0 } to { transform: none; opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .ch-joint .jb { animation: none } }
+.ch-joint .jb:hover { stroke: var(--ink); stroke-width: 1.2 }
+.ch-joint .q-lab { font-size: 11px; fill: var(--muted); paint-order: stroke; stroke: var(--surface); stroke-width: 3px }
+.ch-joint .q-lab tspan.n { font-weight: 700; fill: var(--ink) }
+.ch-joint .ax { font-size: 10px; fill: var(--muted) }
+.ch-joint .j-tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px;
+  font-size: 12px; line-height: 1.35; box-shadow: 0 4px 14px rgb(0 0 0 / .12); white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); z-index: 3 }
+.ch-legend i.half { background: linear-gradient(90deg, var(--rep) 50%, var(--dem) 50%) }
 .ch-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; font-size: 12px; color: var(--muted) }
 .ch-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px }
 .pbar2 { height: 6px; border-radius: 3px; background: var(--rep); overflow: hidden; margin-top: 4px }
@@ -365,6 +383,7 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
 /* Phones: the race table becomes one card per race, poll lists scroll in their own box, two summary tiles per row,
    bigger map labels and touch targets. */
 @media (max-width: 640px) {
+  .chambers { padding-right: 0; padding-top: 30px } .ch-flip { top: 0; transform: none; height: 28px }
   .wrap { gap: 14px; padding-block: 14px 36px }
   h1 { font-size: 34px }
   header { align-items: stretch }
@@ -616,7 +635,7 @@ const raceKey = r => r.label || (r.state + (r.special ? "-S" : ""));
 // ---------- core computation
 function compute(usePicks = true) {
   const m = DS._prep[mode], N = DS.n_sims;
-  if (m.static) { const s = m.static; return { n: N, keep: null, static: true, view: s.view, sen: s.sen || null, house: s.house || null, pres: s.pres || null, env: s.env || null,
+  if (m.static) { const s = m.static; return { n: N, keep: null, static: true, view: s.view, sen: s.sen || null, house: s.house || null, pres: s.pres || null, env: s.env || null, joint: s.joint || null,
     hist: { senSeats: s.hist_sen, houseSeats: s.hist_house, ev: s.hist_ev } }; }
   const keep = new Uint8Array(N).fill(1);
   if (usePicks) for (const [key, side] of Object.entries(picks)) {
@@ -634,12 +653,13 @@ function compute(usePicks = true) {
   if (m.sen) { const R = DS.views.sen.length; for (let j = 0; j < N; j++) { let s = DS.sen_holdover_dem; for (let i = 0; i < R; i++) if (m.sen[i * N + j] > 0) s++; senSeats[j] = s; } }
   out.ev = ev; out.senSeats = senSeats; out.houseSeats = m.htot || new Uint16Array(N);
   let sc = 0, hc = 0, pc = 0, ss = 0, hsum = 0, esum = 0;
-  const sh = [], hh = [], eh = [], envs = [];
+  const sh = [], hh = [], eh = [], envs = [], jt = new Map();     // jt: Senate seats x House seats -> [sims, sims with D Senate control]
   for (let j = 0; j < N; j++) {
     if (!keep[j]) continue;
     const s = senSeats[j], vpD = presArr ? ev[j] >= 270 : DS.vp_party === "D";
     if (m.sen) { ss += s; sh.push(s); if (s >= 51 || (s === 50 && vpD)) sc++; }
     if (m.htot) { const h = m.htot[j]; hsum += h; hh.push(h); if (h >= 218) hc++; }
+    if (m.sen && m.htot) { const k = s * 1000 + m.htot[j], e = jt.get(k), sd = s >= 51 || (s === 50 && vpD) ? 1 : 0; if (e) { e[0]++; e[1] += sd; } else jt.set(k, [1, sd]); }
     if (presArr) { esum += ev[j]; eh.push(ev[j]); if (ev[j] >= 270) pc++; }
     const envArr = m.natp || m.nat;
     if (envArr) envs.push(envArr[j] / 4);
@@ -648,6 +668,7 @@ function compute(usePicks = true) {
   out.sen = m.sen ? { p: sc / n, mean: ss / n, lo: qs(sh, .05), hi: qs(sh, .95) } : null;
   out.house = m.htot ? { p: hc / n, mean: hsum / n, lo: qs(hh, .05), hi: qs(hh, .95) } : null;
   out.pres = presArr ? { p: pc / n, mean: esum / n, lo: qs(eh, .05), hi: qs(eh, .95) } : null;
+  out.joint = jt.size ? [...jt].flatMap(([k, [n_, d_]]) => [Math.floor(k / 1000), k % 1000, n_, d_]) : null;     // flat [sen, house, sims, D-control sims, ...]
   out.env = envs.length ? { mean: envs.reduce((a, b) => a + b, 0) / envs.length, lo: qs(envs, .05), hi: qs(envs, .95) } : null;
   for (const v of views()) {
     const arr = m[v], R = DS.views[v].length, w = new Float64Array(R), s = new Float64Array(R);
@@ -1089,7 +1110,77 @@ function jars(evD, pD, res) {
     <text x="${x1 + W + 5}" y="${(y270 + 2.5).toFixed(1)}" style="font-size:7px;fill:var(--muted)">270</text></svg>
     <div class="ch-legend"><span><i style="background:var(--dem)"></i>Democrats ${Math.round(evD)}</span><span><i style="background:var(--rep)"></i>Republicans ${538 - Math.round(evD)}</span></div></figure>`;
 }
-let chamberShown = false;
+let chamberShown = false, chamberJoint = false;
+function jointPlot(c, res) {
+  // Senate seats (x) against House seats (y): one ball per outcome, area by its share of simulations. Blue: Democrats
+  // control both; red: Republicans both; split: left half the Senate's party, right half the House's.
+  // House seats are grouped into bins of `step` seats (edges on 218) so balls stay readable.
+  const A = DS.actual_totals, J = c.joint, cells = [];
+  let tot = 0;
+  for (let i = 0; i < J.length; i += 4) { cells.push([J[i], J[i + 1], J[i + 2], J[i + 3]]); tot += J[i + 2]; }
+  const range = k => {      // seats holding the middle 99.5% of simulations
+    const m = new Map(); cells.forEach(e => m.set(e[k], (m.get(e[k]) || 0) + e[2]));
+    const ks = [...m.keys()].sort((a, b) => a - b); let acc = 0, lo = null, hi = ks[ks.length - 1];
+    for (const v of ks) { acc += m.get(v); if (lo == null && acc >= .0025 * tot) lo = v; if (acc >= .9975 * tot) { hi = v; break; } }
+    return [lo, hi];
+  };
+  const showA = res && A && A.sen_seats != null && A.house_seats != null;
+  const xLine = !DS.views.pres && DS.vp_party === "D" ? 49.5 : 50.5;      // Senate control: 51 seats, or 50 with the VP
+  let [s0, s1] = range(0), [h0, h1] = range(1);
+  if (showA) { s0 = Math.min(s0, A.sen_seats); s1 = Math.max(s1, A.sen_seats); h0 = Math.min(h0, A.house_seats); h1 = Math.max(h1, A.house_seats); }
+  s0 = Math.min(s0, Math.floor(xLine)) - 1; s1 = Math.max(s1, Math.ceil(xLine)) + 1; h0 = Math.min(h0, 214); h1 = Math.max(h1, 221);
+  const W = 640, H = 400, ml = 44, mr = 10, mt = 10, mb = 34, PW = W - ml - mr, PH = H - mt - mb;
+  const nx = s1 - s0 + 1, cw = PW / nx;
+  const step = Math.max(1, Math.ceil((h1 - h0 + 1) / Math.max(10, Math.min(30, Math.round(PH / (cw * .8))))));
+  const bin = h => Math.floor((h - 218) / step), b0 = bin(h0), b1 = bin(h1), ch = PH / (b1 - b0 + 1);
+  const hTop = 218 + (b1 + 1) * step, X = s => ml + (s - s0 + .5) * cw, Y = h => mt + (hTop - h) / step * ch;
+  const agg = new Map(); let out = 0;
+  for (const [s, h, n, d] of cells) {
+    const b = bin(h); if (s < s0 || s > s1 || b < b0 || b > b1) { out += n; continue; }
+    const k = s * 1000 + (b - b0), e = agg.get(k); if (e) { e[0] += n; e[1] += d; } else agg.set(k, [n, d]);
+  }
+  let pmax = 0; for (const [n] of agg.values()) pmax = Math.max(pmax, n);
+  const rmax = Math.min(cw, ch) * .52;
+  let balls = "", qd = { DD: 0, DR: 0, RD: 0, RR: 0 };       // key: Senate party, House party
+  for (const [s, h, n, d] of cells) { const hD = h >= 218 ? "D" : "R"; qd["D" + hD] += d; qd["R" + hD] += n - d; }     // exact, by simulation
+  const col = p => p === "D" ? "var(--dem)" : "var(--rep)";
+  for (const [k, [n, d]] of [...agg].sort((a, b) => b[1][0] - a[1][0])) {
+    const s = Math.floor(k / 1000), b = k % 1000 + b0, sP = d * 2 >= n ? "D" : "R", hP = b >= 0 ? "D" : "R";
+    const r = rmax * Math.sqrt(n / pmax); if (r < .7) continue;
+    const cx = X(s).toFixed(1), cy = Y(218 + (b + .5) * step).toFixed(1), rr = r.toFixed(2), hl = 218 + b * step;
+    const tip = `Senate ${s} D · House ${step === 1 ? hl : `${hl}–${hl + step - 1}`} D<br><b>${n / tot < .001 ? "<0.1" : (100 * n / tot).toFixed(1)}%</b> of simulations`
+      + `<br><span style="color:var(--muted)">${sP === hP ? (sP === "D" ? "Democrats" : "Republicans") + " control both" : `${sP} Senate, ${hP} House`}</span>`;
+    const i = ((s - s0) / nx).toFixed(3);
+    balls += sP === hP
+      ? `<circle class="jb" cx="${cx}" cy="${cy}" r="${rr}" style="--i:${i};fill:${col(sP)}" stroke="var(--surface)" stroke-width=".8" data-tip="${tip.replace(/"/g, "&quot;").replace(/</g, "&lt;")}"/>`
+      : `<g class="jb" style="--i:${i}" data-tip="${tip.replace(/"/g, "&quot;").replace(/</g, "&lt;")}" stroke="var(--surface)" stroke-width=".8"><path d="M${cx} ${(cy - r).toFixed(2)}A${rr} ${rr} 0 0 0 ${cx} ${(+cy + r).toFixed(2)}Z" fill="${col(sP)}"/><path d="M${cx} ${(cy - r).toFixed(2)}A${rr} ${rr} 0 0 1 ${cx} ${(+cy + r).toFixed(2)}Z" fill="${col(hP)}"/><circle cx="${cx}" cy="${cy}" r="${rr}" fill="none"/></g>`;
+  }
+  // axes: Senate seats along the bottom, House seats up the left; control lines dashed
+  let ax = "";
+  const sStep = nx > 22 ? 4 : nx > 12 ? 2 : 1;
+  for (let s = s0; s <= s1; s++) if (s % sStep === 0) ax += `<text class="ax" x="${X(s).toFixed(1)}" y="${H - mb + 14}" text-anchor="middle">${s}</text>`;
+  const hs = (h1 - h0) > 120 ? 20 : (h1 - h0) > 50 ? 10 : 5;
+  for (let h = Math.ceil((218 + b0 * step) / hs) * hs; h <= hTop; h += hs) { const y = Y(h + .5); if (y < mt + 4 || y > mt + PH - 2) continue;
+    ax += `<line x1="${ml}" x2="${W - mr}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width=".6"/><text class="ax" x="${ml - 6}" y="${(y + 3.5).toFixed(1)}" text-anchor="end">${h}</text>`; }
+  const xl = ml + (xLine - s0 + .5) * cw, yl = Y(218);
+  ax += `<line x1="${xl.toFixed(1)}" x2="${xl.toFixed(1)}" y1="${mt}" y2="${mt + PH}" stroke="var(--ink)" stroke-width=".8" stroke-dasharray="3 3"/>`
+    + `<line x1="${ml}" x2="${W - mr}" y1="${yl.toFixed(1)}" y2="${yl.toFixed(1)}" stroke="var(--ink)" stroke-width=".8" stroke-dasharray="3 3"/>`
+    + `<text class="ax" x="${(ml + PW / 2).toFixed(1)}" y="${H - 4}" text-anchor="middle">Democratic Senate seats →</text>`
+    + `<text class="ax" transform="translate(11 ${(mt + PH / 2).toFixed(1)}) rotate(-90)" text-anchor="middle">Democratic House seats →</text>`;
+  const P = k => pct(qd[k] / tot), q = (x, y, anc, k, lab) => `<text class="q-lab" x="${x}" y="${y}" text-anchor="${anc}"><tspan class="n">${P(k)}</tspan> ${lab}</text>`;
+  ax += q(W - mr - 4, mt + 13, "end", "DD", "D both") + q(ml + 4, mt + 13, "start", "RD", "R Senate, D House")
+    + q(ml + 4, mt + PH - 6, "start", "RR", "R both") + q(W - mr - 4, mt + PH - 6, "end", "DR", "D Senate, R House");
+  const act = showA ? `<circle cx="${X(A.sen_seats).toFixed(1)}" cy="${Y(A.house_seats + .5).toFixed(1)}" r="${(rmax + 3).toFixed(1)}" fill="none" stroke="var(--ink)" stroke-width="1.6"/>`
+    + `<text class="q-lab" x="${(X(A.sen_seats) + rmax + 6).toFixed(1)}" y="${(Y(A.house_seats + .5) + 4).toFixed(1)}"><tspan class="n">Result</tspan> ${A.sen_seats} / ${A.house_seats}</text>` : "";
+  const stats = `<div class="stat"><span class="k">Democrats both</span><span class="v num dem">${P("DD")}</span><span class="d"></span></div>`
+    + `<div class="stat"><span class="k">Split</span><span class="v num">${pct((qd.DR + qd.RD) / tot)}</span><span class="d">D Senate, R House ${P("DR")} · R Senate, D House ${P("RD")}</span></div>`
+    + `<div class="stat"><span class="k">Republicans both</span><span class="v num rep">${P("RR")}</span><span class="d"></span></div>`;
+  const sub = `Every simulated outcome · bigger ball = more likely${step > 1 ? ` · House in ${step}-seat groups` : ""}`;
+  return `<section class="ch-panel ch-joint"><figure><header class="ch-h"><h3>Senate and House together</h3><span class="sub">${sub}</span></header>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Senate and House outcomes: Democrats both ${P("DD")}, split ${pct((qd.DR + qd.RD) / tot)}, Republicans both ${P("RR")}">${ax}${balls}${act}</svg>
+    <div class="ch-stats">${stats}</div>
+    <div class="ch-legend"><span><i style="background:var(--dem)"></i>Democrats control both</span><span><i style="background:var(--rep)"></i>Republicans control both</span><span><i class="half"></i>Split: left half Senate, right half House</span></div></figure></section>`;
+}
 function dropBalls(root) {
   // jar balls: a small physics sim. Balls are released bottom row first from above the jar and fall under gravity.
   // Every ball collides with its real neighbours (the rows are offset like a honeycomb, so a ball rests on up to two
@@ -1173,7 +1264,11 @@ function chamberTile(c, b, senStats, houseStats, presStats) {
   }
   if (!figs.length) return senStats + houseStats;
   const anim = !chamberShown; chamberShown = true;     // entrance animation once, on page load (not on every redraw)
-  return `<div class="stat chamber"><div class="chambers${anim ? " anim" : ""}">${figs.join("")}</div></div>`;
+  // the arrow swaps the two seat arcs for one plot of Senate and House outcomes together (the presidency's jars stay)
+  const canJoint = !!(c.joint && c.sen && c.house && DS.views.sen && DS.views.house), joint = canJoint && chamberJoint;
+  const body = joint ? (c.pres && presStats ? [figs[0]] : []).concat(jointPlot(c, res)) : figs;
+  const flip = canJoint ? `<button type="button" class="ch-flip${joint ? " back" : ""}" aria-label="${joint ? "Back to the seat arcs" : "Senate and House outcomes together"}" title="${joint ? "Back to the seat arcs" : "Senate and House outcomes together"}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>` : "";
+  return `<div class="stat chamber"><div class="chambers${anim ? " anim" : ""}">${body.join("")}${flip}</div></div>`;
 }
 // ---------- countdown calendar: days from this forecast's date to Election Day. On first load it flips down from a few
 // days earlier to the number; later date changes just set it.
@@ -1537,6 +1632,17 @@ $("sel-year").onchange = e => { chamberShown = false; const y = +e.target.value;
 $("sel-date").onchange = e => setDataset(year, e.target.value);
 
 function cycle(key) { if (DS._prep[mode].static) return; const k = view + ":" + key, cur = picks[k]; setPick(k, cur == null ? "D" : cur === "D" ? "R" : null); }
+$("strip").addEventListener("click", e => { if (e.target.closest(".ch-flip")) { chamberJoint = !chamberJoint; render(); const f = $("strip").querySelector(".ch-flip"); if (f) f.focus(); } });
+$("strip").addEventListener("pointermove", e => {
+  const fig = e.target.closest(".ch-joint figure"); let tip = $("strip").querySelector(".j-tip");
+  const b = e.target.closest(".jb");
+  if (!fig || !b) { if (tip) tip.hidden = true; return; }
+  if (!tip) { tip = document.createElement("div"); tip.className = "j-tip"; fig.appendChild(tip); }
+  const r = fig.getBoundingClientRect(), br = b.getBoundingClientRect();
+  tip.innerHTML = b.dataset.tip; tip.hidden = false;
+  tip.style.left = Math.max(70, Math.min(r.width - 70, br.left + br.width / 2 - r.left)) + "px"; tip.style.top = (br.top - r.top) + "px";
+});
+$("strip").addEventListener("pointerleave", () => { const t = $("strip").querySelector(".j-tip"); if (t) t.hidden = true; });
 function setPick(k, side) { if (DS._prep[mode] && DS._prep[mode].static) return; scenario = null; showResult = false; if (side) picks[k] = side; else delete picks[k]; render(); }
 $("reset").onclick = () => { scenario = null; for (const k in picks) delete picks[k]; render(); };
 $("result").onclick = () => { showResult = !showResult; scenario = null; render(); };

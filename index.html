@@ -76,7 +76,16 @@ header { margin-bottom: 26px; align-items: end }    /* white space between the t
 .hd-right label.sel, .hd-right .tb-group:has(> .seg) { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px }
 .hd-right .controls select { height: 34px; font-size: 13.5px; padding: 0 24px 0 9px; background-position: right 8px center }
 .hd-right .controls .seg { height: 34px } .hd-right .controls .seg button { padding: 0 9px; font-size: 13.5px }
-html.plain .hd-right .controls .tb-group { padding-left: 10px }
+html.plain .hd-right .controls .tb-group { padding-left: 22px }
+/* header controls without boxes: dropdowns are just text + chevron; the model choice is plain text, the active one bigger */
+.hd-right .controls select { border: 0; background-color: transparent; padding: 0 20px 0 0; font-weight: 600; background-position: right 2px center }
+.hd-right .controls select:hover { color: var(--accent, var(--dem)) }
+.hd-right .controls select:focus { outline: none } .hd-right .controls select:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 4px }
+.hd-right .controls .seg { border: 0; background: none; border-radius: 0; overflow: visible; gap: 2px; align-items: baseline }
+.hd-right .controls .seg button { padding: 0 8px; height: auto; line-height: 34px; color: var(--muted); font-size: 13.5px; font-weight: 500; background: none; transition: font-size .12s }
+.hd-right .controls .seg button:first-child { padding-left: 0 }
+.hd-right .controls .seg button:hover { color: var(--ink) }
+.hd-right .controls .seg button[aria-pressed="true"] { background: none; color: var(--ink); font-size: 16px; font-weight: 700 }
 @media (min-width: 1181px) { h1 { font-size: 38px; white-space: nowrap } .hd-left { flex: none } header { column-gap: 20px } }
 @media (max-width: 1180px) { .hd-right .controls, .hd-right .tb-group { flex-wrap: wrap } .hd-right { flex: 1 1 100% } }   /* no room for one bar: wrap rather than run off screen */
 .hd-right .tb-group { padding: 0 0 0 14px }

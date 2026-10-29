@@ -560,8 +560,8 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   </div>
 </div>
 
-<script src="forecast_data.js?v=2026-10-28"></script>
-<script src="candidates_2026.js?v=2026-10-28"></script>
+<script src="forecast_data.js?v=2026-10-29"></script>
+<script src="candidates_2026.js?v=2026-10-29"></script>
 <script>
 (() => {
 const F = window.FORECAST;
@@ -1579,7 +1579,7 @@ function drawTimelines() {
 // ---------- data loading & navigation
 function datesFor(y) { const r = F.index.find(q => q.year === y); return r ? r.dates : [F.live.asof]; }
 function loadScript(src) {
-  return new Promise(res => { const s = document.createElement("script"); s.src = src + "?v=2026-10-28"; s.onload = () => res(true); s.onerror = () => res(false); document.head.appendChild(s); });
+  return new Promise(res => { const s = document.createElement("script"); s.src = src + "?v=2026-10-29"; s.onload = () => res(true); s.onerror = () => res(false); document.head.appendChild(s); });
 }
 async function loadYear(y) {
   if (HIST[y]) return HIST[y];

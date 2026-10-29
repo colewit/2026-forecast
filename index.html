@@ -1164,13 +1164,23 @@ function drawNational(c, b) {
 
 // ---------- table
 let showAllRaces = false;
+function pollSpread(r) {
+  // ± under the poll average: weighted standard deviation of the adjusted margins of the polls in it (same weights)
+  if (!r.n_polls) return "no polls";
+  const ps = (DS.polls || {})[r.race];
+  if (!ps || !ps.length) return "&nbsp;";
+  if (ps.length < 2) return "1 poll";
+  const W = ps.reduce((a, p) => a + p.share, 0) || 1, m = ps.reduce((a, p) => a + p.share * p.adj, 0) / W;
+  const sd = Math.sqrt(ps.reduce((a, p) => a + p.share * (p.adj - m) ** 2, 0) / W);
+  return `<span title="How widely the ${ps.length} polls in the average disagree (weighted SD of adjusted margins)">±${sd.toFixed(1)}</span>`;
+}
 function drawTable(c, b) {
   const rows0 = DS.views[view], st = DS._prep[mode].stats[view];
   const hasPolls = (!!DS.polls && view === "sen") || rows0.some(r => r.fx);
   const hasMoney = rows0.some(r => r.dem_money != null || r.rep_money != null);
   const pastResult = rows0.some(r => r.actual != null);
   $("tbl-head").innerHTML = `<th data-sort="state">State</th><th>Candidates</th>${view === "pres" ? '<th class="r" data-sort="ev">EV</th>' : ""}<th data-sort="p">Chance of D win</th>
-    <th class="r" data-sort="mean">Forecast<span class="th-sub">margin · spread</span></th><th class="r" data-sort="avg">Polls<span class="th-sub">average</span></th><th class="r" data-sort="fund">Fundamentals<span class="th-sub">no polls</span></th>
+    <th class="r" data-sort="mean">Forecast<span class="th-sub">margin · spread</span></th><th class="r" data-sort="avg" title="Poll average; ± is how widely the polls in it disagree (weighted standard deviation of their adjusted margins, same weights as the average)">Polls<span class="th-sub">average · spread</span></th><th class="r" data-sort="fund">Fundamentals<span class="th-sub">no polls</span></th>
     ${pastResult ? '<th class="r" data-sort="actual">Result</th>' : ""}${hasMoney ? '<th data-sort="money" title="Raised: the candidates’ campaign committees. Outside: super PACs, party committees and groups spending for a side. Democrats to the left of the line, Republicans to the right; both rows on one scale. Hover for totals.">Money <span class="th-sub">Democrats ◂ │ ▸ Republicans</span></th>' : ""}<th class="c-pick">Call it</th>${hasPolls ? "<th></th>" : ""}`;
   $("tbl-polls-note").hidden = !hasPolls;
   document.querySelectorAll("#tbl th[data-sort]").forEach(th => {
@@ -1204,7 +1214,7 @@ function drawTable(c, b) {
       <td class="pcell c-p">${!r.contested ? '<span class="sub">uncontested</span>' : c.n ? `<div class="pbar"><i style="width:${p * 100}%"></i><b><span>${pct(p)}</span><span>${pct(1 - p)}</span></b></div>
         <div class="delta">${pk ? "your pick" : Math.abs(d) >= 0.005 ? (d > 0 ? "▲ D " : "▼ D ") + Math.abs(d * 100).toFixed(0) + " pts vs. no picks" : "&nbsp;"}</div>` : "–"}</td>
       <td class="r c-mean ${mean > 0 ? "dem" : "rep"}" data-l="Forecast">${r.contested && c.n ? fmtM(mean) : "–"}<div class="delta">${st && st[i] && st[i].sd ? "±" + st[i].sd.toFixed(1) : ""}</div></td>
-      <td class="r c-avg ${r.avg == null ? "" : r.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(r.avg)}<div class="delta">${!r.n_polls ? "no polls" : r.und != null ? `${r.und.toFixed(0)}% undecided` : "&nbsp;"}</div></td>
+      <td class="r c-avg ${r.avg == null ? "" : r.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(r.avg)}<div class="delta">${pollSpread(r)}</div></td>
       <td class="r c-fund ${r.fund_mean == null ? "" : r.fund_mean > 0 ? "dem" : "rep"}" data-l="Fundamentals">${fmtM(r.fund_mean)}<div class="delta">&nbsp;</div></td>
       ${pastResult ? `<td class="r c-res ${r.actual > 0 ? "dem" : "rep"}" data-l="Result">${fmtM(r.actual)}${wrong ? '<div class="delta">upset</div>' : ""}</td>` : ""}
       ${hasMoney ? moneyCell(r) : ""}

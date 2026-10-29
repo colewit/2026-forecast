@@ -389,6 +389,8 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   #tbl tr.row:has(+ tr.detail) { border-radius: 10px 10px 0 0; margin-bottom: 0; border-bottom: 0 }
   #tbl tr.detail > td { top: 0 }
   #tbl tr.row td[data-l]::before { content: attr(data-l); display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500 }
+  .drv-row { grid-template-columns: minmax(0, 1fr) 58px; grid-template-areas: "nm nm" "bar v"; row-gap: 2px; padding: 4px 0 }   /* label above a full-width bar */
+  .drv-row .nm { grid-area: nm } .drv-row .drv-bar { grid-area: bar } .drv-row .v { grid-area: v }
   #tbl > tbody > tr.row > .st { grid-area: st; width: auto; font-size: 20px }
   #tbl > tbody > tr.row > .cands { grid-area: cands; min-width: 0 }
   #tbl > tbody > tr.row > .c-p { grid-area: p; width: auto }

@@ -380,8 +380,8 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   .tbl-wrap { overflow-x: visible }
   #tbl .tbl-wrap, .rec .tbl-wrap { overflow-x: auto; max-width: 100% }   /* poll tables inside Details scroll in their own box, not the page */
   #tbl { min-width: 0 }
-  #tbl thead { display: none }
-  #tbl, #tbl tbody { display: block }
+  #tbl > thead { display: none }                 /* ">" so the poll tables nested in Details keep their table layout */
+  #tbl, #tbl > tbody { display: block }
   #tbl tr.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; padding: 12px;
     border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; background: color-mix(in srgb, var(--ink) 2.5%, var(--surface));
     grid-template-areas: "st st pick" "cands cands cands" "p p p" }
@@ -389,15 +389,16 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   #tbl tr.row:has(+ tr.detail) { border-radius: 10px 10px 0 0; margin-bottom: 0; border-bottom: 0 }
   #tbl tr.detail > td { top: 0 }
   #tbl tr.row td[data-l]::before { content: attr(data-l); display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500 }
-  #tbl .st { grid-area: st; width: auto; font-size: 20px }
-  #tbl .cands { grid-area: cands; min-width: 0 }
-  #tbl .c-p { grid-area: p; width: auto }
-  #tbl .c-pick { grid-area: pick; justify-self: end }
-  #tbl .c-money { grid-column: 1 / -1 }
-  #tbl .c-exp { grid-column: 1 / -1 }
-  #tbl .c-exp .exp { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px }
+  #tbl > tbody > tr.row > .st { grid-area: st; width: auto; font-size: 20px }
+  #tbl > tbody > tr.row > .cands { grid-area: cands; min-width: 0 }
+  #tbl > tbody > tr.row > .c-p { grid-area: p; width: auto }
+  #tbl > tbody > tr.row > .c-pick { grid-area: pick; justify-self: end }
+  #tbl > tbody > tr.row > .c-money { grid-column: 1 / -1 }
+  #tbl > tbody > tr.row > .c-exp { grid-column: 1 / -1 }
+  #tbl > tbody > tr.row > .c-exp .exp { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px }
   .pick button { width: 40px; height: 34px; font-size: 14px }
-  #tbl tr.detail, #tbl tr.detail td { display: block; padding: 10px 0 }
+  #tbl > tbody > tr.detail, #tbl > tbody > tr.detail > td { display: block; padding: 10px 0 }
+  #tbl table.polls { display: table; min-width: 560px } #tbl table.polls thead { display: table-header-group } #tbl table.polls tbody { display: table-row-group }
   .detail td { overflow-x: auto; -webkit-overflow-scrolling: touch }
   .polls { min-width: 540px }
   .iss-row, .iss-ends { grid-template-columns: 132px minmax(0, 1fr) 62px }

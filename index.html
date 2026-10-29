@@ -149,9 +149,7 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 /* load: seats rise into place sweeping left to right; jar balls drop in and bounce */
 .chambers.anim circle.seat { transform-box: fill-box; transform-origin: center; animation: seatUp .55s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i) * 1100ms + 150ms) }
 @keyframes seatUp { from { transform: translateY(14px) scale(.6); opacity: 0 } to { transform: none; opacity: 1 } }
-.chambers.anim circle.ball { animation: ballDrop .9s cubic-bezier(.3, 0, .6, 1) both; animation-delay: calc(var(--d) * 14ms + 200ms) }
-@keyframes ballDrop { 0% { transform: translateY(var(--dy)); opacity: 0 } 8% { opacity: 1 } 55% { transform: translateY(0) } 70% { transform: translateY(-5px) } 82% { transform: translateY(0) } 91% { transform: translateY(-1.5px) } 100% { transform: translateY(0) } }
-@media (prefers-reduced-motion: reduce) { .chambers.anim circle.seat, .chambers.anim circle.ball { animation: none } }
+@media (prefers-reduced-motion: reduce) { .chambers.anim circle.seat { animation: none } }
 .chambers figure { margin: 0; display: grid; gap: 4px; justify-items: center; min-width: 0 }
 .ch-panel { flex: 1 1 300px; max-width: 480px; min-width: 0; display: grid; gap: 10px; align-content: start }
 .ch-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 8px; width: 100%; padding: 4px 0 8px; border-bottom: 1px solid var(--line) }
@@ -977,6 +975,7 @@ function drawSummary(c, b) {
   else html += senT.join("") + houseT.join("");
   if (!c.n) html = tile("No simulations", "–", "", "No simulation produced this combination. Remove a pick.");
   $("strip").innerHTML = html;
+  if ($("strip").querySelector(".chambers.anim")) dropBalls($("strip"));
   const L = $("locks"); L.innerHTML = "";
   if (!any) L.innerHTML = `<span class="sub">No picks yet. ${modeName()} model.</span>`;
   for (const [key, side] of Object.entries(picks)) {
@@ -1078,9 +1077,9 @@ function jars(evD, pD, res) {
     for (let i = 0; i < n; i++) {
       const rI = Math.floor(i / cols), cI = i % cols, off = rI % 2 ? br * 0.45 : -br * 0.1;
       const by = base - 3 - br - rI * dy;
-      out += `<circle class="ball" cx="${(x + 1.8 + br + cI * dx + off).toFixed(1)}" cy="${by.toFixed(1)}" r="${br}" style="--d:${i};--dy:${(top - 12 - by).toFixed(1)}px;fill:${col}"/>`;
+      out += `<circle class="ball" cx="${(x + 1.8 + br + cI * dx + off).toFixed(1)}" cy="${by.toFixed(1)}" r="${br}" data-c="${cI}" data-r="${rI}" data-y0="${(top - 10).toFixed(1)}" data-sp="${dy.toFixed(2)}" style="fill:${col}"/>`;
     }
-    return `<g><title>${who}: ${Math.round(ev)} ${res ? "electoral votes won" : "expected electoral votes"}</title>${out}</g>`;
+    return `<g data-j="${who}"><title>${who}: ${Math.round(ev)} ${res ? "electoral votes won" : "expected electoral votes"}</title>${out}</g>`;
   };
   const y270 = base - 3 - br - (270 / per / cols - 0.5) * dy;      // between the 6th and 7th rows (270 = 54 balls)
   return `<figure><header class="ch-h"><h3>Presidency</h3><span class="sub">${res ? "Electoral votes won" : "Expected electoral votes"} · 270 to win · each ball 5 votes</span></header>
@@ -1091,6 +1090,41 @@ function jars(evD, pD, res) {
     <div class="ch-legend"><span><i style="background:var(--dem)"></i>Democrats ${Math.round(evD)}</span><span><i style="background:var(--rep)"></i>Republicans ${538 - Math.round(evD)}</span></div></figure>`;
 }
 let chamberShown = false;
+function dropBalls(root) {
+  // jar balls: a small 1-D physics sim per column. Balls are released bottom row first from above the jar, fall under
+  // gravity, and can't pass through the ball beneath (they land on it, even while it is still bouncing) or push up
+  // into the ball above; each bounce loses most of its speed until the ball settles in its slot.
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const balls = [...root.querySelectorAll("circle.ball")]; if (!balls.length) return;
+  const G = 700, E = 0.38, cols = new Map();
+  balls.forEach(b => { const k = b.parentNode.dataset.j + ":" + b.dataset.c; if (!cols.has(k)) cols.set(k, []); cols.get(k).push(b); });
+  const st = [];
+  for (const list of cols.values()) {
+    list.sort((a, b) => a.dataset.r - b.dataset.r);
+    const objs = list.map((b, k) => ({ b, rest: +b.getAttribute("cy"), y: +b.dataset.y0, v: 0, sp: +b.dataset.sp,
+      t0: 0.25 + k * 0.11 + (+b.dataset.c) * 0.03 + Math.random() * 0.03, live: false }));
+    objs.forEach((o, k) => { o.below = objs[k - 1] || null; o.above = objs[k + 1] || null; });
+    st.push(...objs);
+  }
+  st.forEach(o => { o.b.style.opacity = 0; o.b.style.transform = `translateY(${o.y - o.rest}px)`; });
+  let t = 0, last = null;
+  const step = now => {
+    if (!document.contains(st[0].b)) return;                 // redrawn meanwhile
+    const dt = last == null ? 0 : Math.min(0.033, (now - last) / 1000); last = now; t += dt;
+    let moving = 0;
+    for (const o of st) {
+      if (!o.live) { if (t < o.t0) { moving++; continue; } o.live = true; o.b.style.opacity = 1; }
+      o.v += G * dt; o.y += o.v * dt;
+      const floor = o.below && o.below.live ? Math.min(o.rest, o.below.y - o.sp) : o.rest;
+      if (o.y > floor) { o.y = floor; if (o.v > 0) o.v = o.v > 40 ? -o.v * E : 0; }
+      if (o.above && o.above.live && o.y < o.above.y + o.sp) { o.y = o.above.y + o.sp; if (o.v < 0) o.v = 0; }
+      if (Math.abs(o.y - o.rest) > 0.05 || Math.abs(o.v) > 0.5) moving++;
+      o.b.style.transform = `translateY(${(o.y - o.rest).toFixed(2)}px)`;
+    }
+    if (moving) requestAnimationFrame(step); else st.forEach(o => { o.b.style.transform = ""; o.b.style.opacity = ""; });
+  };
+  requestAnimationFrame(step);
+}
 function chamberTile(c, b, senStats, houseStats, presStats) {
   // "show what happened": seats, gavels and jars switch to the actual result (each seat won D or R), and the numbers
   // under each graphic become the result next to the forecast

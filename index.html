@@ -71,6 +71,13 @@ label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px
 header { margin-bottom: 26px; align-items: end }    /* white space between the title row and the chambers */
 .hd-right { flex: 0 0 auto }                        /* the controls stay one bar: beside the title if there is room, else under it */
 .hd-right .controls, .hd-right .tb-group { flex-wrap: nowrap }
+/* compact bar so it fits beside the title: captions above the controls, smaller controls, slightly smaller title */
+.hd-right .controls .tb-group { align-items: flex-end }
+.hd-right label.sel, .hd-right .tb-group:has(> .seg) { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 3px }
+.hd-right .controls select { height: 34px; font-size: 13.5px; padding: 0 24px 0 9px; background-position: right 8px center }
+.hd-right .controls .seg { height: 34px } .hd-right .controls .seg button { padding: 0 9px; font-size: 13.5px }
+html.plain .hd-right .controls .tb-group { padding-left: 10px }
+@media (min-width: 1181px) { h1 { font-size: 38px; white-space: nowrap } .hd-left { flex: none } header { column-gap: 20px } }
 @media (max-width: 1180px) { .hd-right .controls, .hd-right .tb-group { flex-wrap: wrap } .hd-right { flex: 1 1 100% } }   /* no room for one bar: wrap rather than run off screen */
 .hd-right .tb-group { padding: 0 0 0 14px }
 .controls { flex: 0 1 auto; justify-content: flex-end; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 0; background: var(--surface);
@@ -1429,12 +1436,12 @@ function jumpTo(dstr) {
 }
 function fillSelectors() {
   const ys = $("sel-year");
-  ys.innerHTML = F.index.map(r => `<option value="${r.year}" ${r.year === year ? "selected" : ""}>${r.year}${r.year === F.live.year ? " (live)" : ""}</option>`).join("");
+  ys.innerHTML = F.index.map(r => `<option value="${r.year}" ${r.year === year ? "selected" : ""}>${r.year}</option>`).join("");
   const E = new Date(DS.election + "T12:00");
   $("sel-date").innerHTML = datesFor(year).map(d => {
     const days = Math.round((E - new Date(d + "T12:00")) / 864e5);
     const lbl = new Date(d + "T12:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    return `<option value="${d}" ${d === date ? "selected" : ""}>${lbl} · ${days === 0 ? "Election Day" : days + " days out"}${year === F.live.year && d === F.live.asof ? " (latest)" : ""}</option>`;
+    return `<option value="${d}" ${d === date ? "selected" : ""} title="${days === 0 ? "Election Day" : days + " days before the election"}">${lbl}${days === 0 ? " · E-Day" : year === F.live.year && d === F.live.asof ? " · latest" : ""}</option>`;
   }).join("");
   $("v-pres").disabled = !DS.views.pres;
   $("v-house").disabled = !(DS.views.house && DS.views.house.length);

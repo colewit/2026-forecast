@@ -245,7 +245,7 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
 #tbl .delta { white-space: nowrap }
 #tbl td.st { white-space: nowrap; width: 64px; font-size: 16px }                 /* district labels like NH-01 stay on one line */
 #tbl td.c-money, #tbl th[data-sort="money"] { padding-left: 32px }             /* breathing room after the polls column */
-#tbl td.c-avg, #tbl th[data-sort="avg"] { padding-right: 10px }
+#tbl td.c-avg, #tbl th[data-sort="avg"], #tbl td.c-fund, #tbl th[data-sort="fund"] { padding-right: 10px; padding-left: 14px }
 #tbl td.c-mean, #tbl th[data-sort="mean"] { padding-left: 16px }
 #tbl td.c-pick, #tbl th.c-pick { padding-left: 20px }
 #tbl .mb-rel { margin-top: 2px }
@@ -1170,7 +1170,7 @@ function drawTable(c, b) {
   const hasMoney = rows0.some(r => r.dem_money != null || r.rep_money != null);
   const pastResult = rows0.some(r => r.actual != null);
   $("tbl-head").innerHTML = `<th data-sort="state">State</th><th>Candidates</th>${view === "pres" ? '<th class="r" data-sort="ev">EV</th>' : ""}<th data-sort="p">Chance of D win</th>
-    <th class="r" data-sort="mean">Forecast<span class="th-sub">margin · fundamentals</span></th><th class="r" data-sort="avg">Polls<span class="th-sub">average · count</span></th>
+    <th class="r" data-sort="mean">Forecast<span class="th-sub">margin · spread</span></th><th class="r" data-sort="avg">Polls<span class="th-sub">average</span></th><th class="r" data-sort="fund">Fundamentals<span class="th-sub">no polls</span></th>
     ${pastResult ? '<th class="r" data-sort="actual">Result</th>' : ""}${hasMoney ? '<th data-sort="money" title="Raised: the candidates’ campaign committees. Outside: super PACs, party committees and groups spending for a side. Democrats to the left of the line, Republicans to the right; both rows on one scale. Hover for totals.">Money <span class="th-sub">Democrats ◂ │ ▸ Republicans</span></th>' : ""}<th class="c-pick">Call it</th>${hasPolls ? "<th></th>" : ""}`;
   $("tbl-polls-note").hidden = !hasPolls;
   document.querySelectorAll("#tbl th[data-sort]").forEach(th => {
@@ -1203,8 +1203,9 @@ function drawTable(c, b) {
       ${view === "pres" ? `<td class="r c-ev" data-l="EV">${r.ev}</td>` : ""}
       <td class="pcell c-p">${!r.contested ? '<span class="sub">uncontested</span>' : c.n ? `<div class="pbar"><i style="width:${p * 100}%"></i><b><span>${pct(p)}</span><span>${pct(1 - p)}</span></b></div>
         <div class="delta">${pk ? "your pick" : Math.abs(d) >= 0.005 ? (d > 0 ? "▲ D " : "▼ D ") + Math.abs(d * 100).toFixed(0) + " pts vs. no picks" : "&nbsp;"}</div>` : "–"}</td>
-      <td class="r c-mean ${mean > 0 ? "dem" : "rep"}" data-l="Forecast">${r.contested && c.n ? fmtM(mean) : "–"}<div class="delta">${st && st[i] && st[i].sd ? "±" + st[i].sd.toFixed(1) : ""}${r.fund_mean != null ? ` · <span class="${r.fund_mean > 0 ? "dem" : "rep"}" title="Fundamentals (no polls)">fund. ${fmtM(r.fund_mean)}</span>` : ""}</div></td>
-      <td class="r c-avg ${r.avg == null ? "" : r.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(r.avg)}<div class="delta">${r.n_polls ? `<span title="${r.n_pollsters || 0} pollsters">${r.n_polls} poll${r.n_polls === 1 ? "" : "s"}</span>` : "no polls"}${r.und != null ? ` · ${r.und.toFixed(0)}% und.` : ""}</div></td>
+      <td class="r c-mean ${mean > 0 ? "dem" : "rep"}" data-l="Forecast">${r.contested && c.n ? fmtM(mean) : "–"}<div class="delta">${st && st[i] && st[i].sd ? "±" + st[i].sd.toFixed(1) : ""}</div></td>
+      <td class="r c-avg ${r.avg == null ? "" : r.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(r.avg)}<div class="delta">${!r.n_polls ? "no polls" : r.und != null ? `${r.und.toFixed(0)}% undecided` : "&nbsp;"}</div></td>
+      <td class="r c-fund ${r.fund_mean == null ? "" : r.fund_mean > 0 ? "dem" : "rep"}" data-l="Fundamentals">${fmtM(r.fund_mean)}<div class="delta">&nbsp;</div></td>
       ${pastResult ? `<td class="r c-res ${r.actual > 0 ? "dem" : "rep"}" data-l="Result">${fmtM(r.actual)}${wrong ? '<div class="delta">upset</div>' : ""}</td>` : ""}
       ${hasMoney ? moneyCell(r) : ""}
       <td class="c-pick">${r.contested ? `<span class="pick"><button class="D" aria-pressed="${pk === "D"}" aria-label="Call ${r.state} for Democrats">D</button><button class="R" aria-pressed="${pk === "R"}" aria-label="Call ${r.state} for Republicans">R</button></span>` : ""}</td>

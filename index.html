@@ -71,6 +71,7 @@ label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px
 header { margin-bottom: 26px; align-items: end }    /* white space between the title row and the chambers */
 .hd-right { flex: 0 0 auto }                        /* the controls stay one bar: beside the title if there is room, else under it */
 .hd-right .controls, .hd-right .tb-group { flex-wrap: nowrap }
+@media (max-width: 1180px) { .hd-right .controls, .hd-right .tb-group { flex-wrap: wrap } .hd-right { flex: 1 1 100% } }   /* no room for one bar: wrap rather than run off screen */
 .hd-right .tb-group { padding: 0 0 0 14px }
 .controls { flex: 0 1 auto; justify-content: flex-end; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 0; background: var(--surface);
   border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent) }

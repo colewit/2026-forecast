@@ -146,6 +146,12 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .stat .d { font-size: 12px; color: var(--muted) }
 .stat.chamber { grid-column: 1 / -1 }
 .chambers { display: flex; flex-wrap: wrap; gap: 18px 40px; justify-content: space-around }
+/* load: seats rise into place sweeping left to right; jar balls drop in and bounce */
+.chambers.anim circle.seat { transform-box: fill-box; transform-origin: center; animation: seatUp .55s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i) * 1100ms + 150ms) }
+@keyframes seatUp { from { transform: translateY(14px) scale(.6); opacity: 0 } to { transform: none; opacity: 1 } }
+.chambers.anim circle.ball { animation: ballDrop .9s cubic-bezier(.3, 0, .6, 1) both; animation-delay: calc(var(--d) * 14ms + 200ms) }
+@keyframes ballDrop { 0% { transform: translateY(var(--dy)); opacity: 0 } 8% { opacity: 1 } 55% { transform: translateY(0) } 70% { transform: translateY(-5px) } 82% { transform: translateY(0) } 91% { transform: translateY(-1.5px) } 100% { transform: translateY(0) } }
+@media (prefers-reduced-motion: reduce) { .chambers.anim circle.seat, .chambers.anim circle.ball { animation: none } }
 .chambers figure { margin: 0; display: grid; gap: 4px; justify-items: center; min-width: 0 }
 .ch-panel { flex: 1 1 300px; max-width: 480px; min-width: 0; display: grid; gap: 10px; align-content: start }
 .ch-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px 8px; width: 100%; padding: 4px 0 8px; border-bottom: 1px solid var(--line) }
@@ -1040,7 +1046,7 @@ function hemicycle(seats, per, majority, title, sub, pD, res) {
   const ctl = ctr ? `M${cx},${top}L${cx},${(cy - ctr.r - dotR - 1.5).toFixed(1)}M${cx},${(cy - ctr.r + dotR + 1.5).toFixed(1)}L${cx},${bot}` : `M${cx},${top}L${cx},${bot}`;
   let dots = "";
   ks.forEach((k, i) => { const { a, r } = pos[i], dec = pos[i] === ctr;    // dec: the centre seat, the one that decides control
-    dots += `<circle cx="${(cx + r * Math.cos(a)).toFixed(1)}" cy="${(cy - r * Math.sin(a)).toFixed(1)}" r="${(dec ? dotR - 0.35 : dotR).toFixed(2)}" style="fill:${shade(k)}${dec ? ";stroke:var(--ink);stroke-width:.9" : ""}"><title>${nameOf(k)}: ${cnt[k]} seat${cnt[k] === 1 ? "" : "s"}${dec ? ` · seat ${majority}, the one that decides control` : ""}</title></circle>`; });
+    dots += `<circle class="seat" cx="${(cx + r * Math.cos(a)).toFixed(1)}" cy="${(cy - r * Math.sin(a)).toFixed(1)}" r="${(dec ? dotR - 0.35 : dotR).toFixed(2)}" style="--i:${(i / N).toFixed(3)};fill:${shade(k)}${dec ? ";stroke:var(--ink);stroke-width:.9" : ""}"><title>${nameOf(k)}: ${cnt[k]} seat${cnt[k] === 1 ? "" : "s"}${dec ? ` · seat ${majority}, the one that decides control` : ""}</title></circle>`; });
   const leg = RATINGS.map((_, k) => cnt[k] ? `<span><i style="background:${shade(k)}"></i>${nameOf(k)} ${cnt[k]}</span>` : "").join("");
   return `<figure><header class="ch-h"><h3>${title}</h3><span class="sub">${sub}</span></header><svg viewBox="${(cx - R1 - dotR - 1).toFixed(1)} ${(cy - R1 - Math.max(dotR, 6) - 1).toFixed(1)} ${(2 * (R1 + dotR + 1)).toFixed(1)} ${(R1 + Math.max(dotR, 6) + dotR + 2).toFixed(1)}" role="img" aria-label="${title}: ${RATINGS.map(([nm], k) => cnt[k] ? nm + " " + cnt[k] : "").filter(Boolean).join(", ")}">${dots}
     <path d="${ctl}" fill="none" stroke="var(--ink)" stroke-width=".7" stroke-dasharray="2 2"/>${pD == null ? "" : gavel(cx, cy, R0, pD, title, dotR)}</svg>
@@ -1071,7 +1077,8 @@ function jars(evD, pD, res) {
       + `<rect x="${x + 6}" y="${top - 4}" width="${W - 12}" height="4" rx="1.5" fill="none" stroke="var(--muted)" stroke-width=".9"/>`;
     for (let i = 0; i < n; i++) {
       const rI = Math.floor(i / cols), cI = i % cols, off = rI % 2 ? br * 0.45 : -br * 0.1;
-      out += `<circle cx="${(x + 1.8 + br + cI * dx + off).toFixed(1)}" cy="${(base - 3 - br - rI * dy).toFixed(1)}" r="${br}" style="fill:${col}"/>`;
+      const by = base - 3 - br - rI * dy;
+      out += `<circle class="ball" cx="${(x + 1.8 + br + cI * dx + off).toFixed(1)}" cy="${by.toFixed(1)}" r="${br}" style="--d:${i};--dy:${(top - 12 - by).toFixed(1)}px;fill:${col}"/>`;
     }
     return `<g><title>${who}: ${Math.round(ev)} ${res ? "electoral votes won" : "expected electoral votes"}</title>${out}</g>`;
   };
@@ -1083,6 +1090,7 @@ function jars(evD, pD, res) {
     <text x="${x1 + W + 5}" y="${(y270 + 2.5).toFixed(1)}" style="font-size:7px;fill:var(--muted)">270</text></svg>
     <div class="ch-legend"><span><i style="background:var(--dem)"></i>Democrats ${Math.round(evD)}</span><span><i style="background:var(--rep)"></i>Republicans ${538 - Math.round(evD)}</span></div></figure>`;
 }
+let chamberShown = false;
 function chamberTile(c, b, senStats, houseStats, presStats) {
   // "show what happened": seats, gavels and jars switch to the actual result (each seat won D or R), and the numbers
   // under each graphic become the result next to the forecast
@@ -1117,7 +1125,8 @@ function chamberTile(c, b, senStats, houseStats, presStats) {
       jars(useRes ? A.ev : c.pres.mean, useRes ? +(A.ev >= 270) : c.pres.p, useRes)));
   }
   if (!figs.length) return senStats + houseStats;
-  return `<div class="stat chamber"><div class="chambers">${figs.join("")}</div></div>`;
+  const anim = !chamberShown; chamberShown = true;     // entrance animation once, on page load (not on every redraw)
+  return `<div class="stat chamber"><div class="chambers${anim ? " anim" : ""}">${figs.join("")}</div></div>`;
 }
 // ---------- countdown calendar: days from this forecast's date to Election Day. On first load it flips down from a few
 // days earlier to the number; later date changes just set it.
@@ -1476,7 +1485,7 @@ function fillSelectors() {
   $("v-house").disabled = !(DS.views.house && DS.views.house.length);
   $("result").hidden = !DS.views[view].some(r => r.actual != null);
 }
-$("sel-year").onchange = e => { const y = +e.target.value; const ds = datesFor(y); setDataset(y, ds[ds.length - 1]); };
+$("sel-year").onchange = e => { chamberShown = false; const y = +e.target.value; const ds = datesFor(y); setDataset(y, ds[ds.length - 1]); };
 $("sel-date").onchange = e => setDataset(year, e.target.value);
 
 function cycle(key) { if (DS._prep[mode].static) return; const k = view + ":" + key, cur = picks[k]; setPick(k, cur == null ? "D" : cur === "D" ? "R" : null); }

@@ -291,6 +291,7 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
 .polls { width: 100%; min-width: 620px }
 .polls td, .polls th { padding: 4px 6px; font-size: 12px; cursor: default }
 .polls td.mono:first-child { white-space: nowrap }
+.polls .fd-short { display: none }
 .tbl-wrap.polls-scroll { overflow: auto; overscroll-behavior: contain; border-bottom: 1px solid var(--line) }
 .tbl-wrap.polls-scroll thead th { position: sticky; top: 0; z-index: 1; background: color-mix(in srgb, var(--ink) 2.5%, var(--surface)) }
 .polls-more { font-size: 11.5px; padding: 4px 2px 0 }
@@ -406,7 +407,9 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   #tbl table.polls th:nth-child(7), #tbl table.polls td:nth-child(7), #tbl table.polls th:nth-child(8), #tbl table.polls td:nth-child(8),
   #tbl table.polls th:nth-child(9), #tbl table.polls td:nth-child(9) { display: none }    /* phones: dates, pollster, D, R, adjusted, weight */
   #tbl .tbl-wrap.polls-scroll { overflow-x: hidden }
-  #tbl table.polls .wbar { max-width: 40px } #tbl table.polls thead { display: table-header-group } #tbl table.polls tbody { display: table-row-group }
+  #tbl table.polls .wbar { display: none }                 /* phones: weight as a number only */
+  #tbl table.polls .fd-long { display: none } #tbl table.polls .fd-short { display: inline }   /* last field day, 10/22 */
+  #tbl table.polls td, #tbl table.polls th { padding: 4px 4px } #tbl table.polls thead { display: table-header-group } #tbl table.polls tbody { display: table-row-group }
   .detail td { overflow-x: auto; -webkit-overflow-scrolling: touch }
   .polls { min-width: 540px }
   .iss-row, .iss-ends { grid-template-columns: 132px minmax(0, 1fr) 62px }
@@ -1303,7 +1306,8 @@ function detailRow(r, i, c, b) {
   const field = p => p.start && p.stop ? (p.start === p.stop ? fd(p.stop) : `${fd(p.start)}–${fd(p.stop)}`) : p.end;
   const asofT = new Date((DS.asof || "") + "T00:00:00").getTime();
   const isNew = p => p.pub && !p.pub_approx && asofT - new Date(p.pub + "T00:00:00").getTime() <= 2 * 864e5;
-  const rowsHtml = ps.map(p => `<tr><td class="mono">${field(p)}</td><td class="mono">${p.pub ? (p.pub_approx ? "~" : "") + fd(p.pub) : "–"}${isNew(p) ? `<span class="tag">new</span>` : ""}</td><td>${p.pollster}${p.partisan ? `<span class="tag">${p.partisan[0]}</span>` : ""}</td>
+  const md = d => { const x = new Date(d + "T00:00:00"); return `${x.getMonth() + 1}/${x.getDate()}`; };
+  const rowsHtml = ps.map(p => `<tr><td class="mono"><span class="fd-long">${field(p)}</span><span class="fd-short" title="${field(p)}">${md(p.stop || p.end)}</span></td><td class="mono">${p.pub ? (p.pub_approx ? "~" : "") + fd(p.pub) : "–"}${isNew(p) ? `<span class="tag">new</span>` : ""}</td><td>${p.pollster}${p.partisan ? `<span class="tag">${p.partisan[0]}</span>` : ""}</td>
       <td class="r mono">${p.n ? p.n.toLocaleString() : "–"} ${p.pop}</td><td class="r dem">${p.dem.toFixed(0)}</td><td class="r rep">${p.rep.toFixed(0)}</td>
       <td class="r">${fmtM(p.raw)}</td><td class="r mono">${sg(-p.he)}</td><td class="r mono">${sg(p.lv)}</td><td class="r ${p.adj > 0 ? "dem" : "rep"}">${fmtM(p.adj)}</td>
       <td><span class="wbar" style="width:${(p.share / mx * 60).toFixed(0)}px"></span> <span class="mono">${(p.share * 100).toFixed(1)}%</span></td></tr>`).join("");

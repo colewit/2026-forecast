@@ -1290,8 +1290,9 @@ function drawTable(c, b) {
 }
 function drivers(r, st) {
   if (!r.fx) return "";
-  const mx = Math.max(...r.fx.map(f => Math.abs(f[1])), 1);
-  const bar = v => { const w = Math.abs(v) / mx * 50; return `<span class="drv-bar"><i style="${v >= 0 ? `left:50%;width:${w}%;background:var(--dem)` : `right:50%;width:${w}%;background:var(--rep)`}"></i></span>`; };
+  const tot0 = r.fx.reduce((a, f) => a + f[1], 0);
+  const mx = Math.max(...r.fx.map(f => Math.abs(f[1])), Math.abs(tot0), 1);    // include the total row, so its bar fits the same scale
+  const bar = v => { const w = Math.min(50, Math.abs(v) / mx * 50); return `<span class="drv-bar"><i style="${v >= 0 ? `left:50%;width:${w}%;background:var(--dem)` : `right:50%;width:${w}%;background:var(--rep)`}"></i></span>`; };
   const row = (nm, v, cls = "") => `<div class="drv-row ${cls}"><span class="nm" title="${nm}">${nm}</span>${bar(v)}<span class="v ${v > 0 ? "dem" : v < 0 ? "rep" : ""}">${fmtM(v)}</span></div>`;
   const tot = r.fx.reduce((a, f) => a + f[1], 0);
   const pollsPct = mode === "fundamentals" ? 0 : Math.round((st.ps || 0) * 100);

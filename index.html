@@ -96,7 +96,7 @@ html.plain .hd-right .controls .tb-group { padding-left: 22px }
 .tb-group + .tb-group { border-left: 1px solid var(--line) }
 .tb-group:empty, .tb-group:not(:has(:not([hidden]))) { display: none }
 .tb-k { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
-.toplinks { display: flex; gap: 4px 16px; flex-wrap: wrap; justify-content: flex-end }
+.toplinks { display: flex; gap: 4px 16px; flex-wrap: wrap; justify-content: flex-start; margin-top: 6px }
 .toplinks a.ghost { border: 0; background: none; padding: 2px 0; height: auto; color: var(--muted); font-size: 13px; font-weight: 500; text-decoration: none }
 .toplinks a.ghost:hover { color: var(--ink) }
 /* plain page: one flat background, no panel outlines or card backgrounds (toggle in the header) */
@@ -417,13 +417,13 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
       <div>
         <div class="eyebrow" id="eyebrow"></div>
         <h1 id="title">2026 Election Forecast</h1>
+        <nav class="toplinks" aria-label="More">
+          <a class="ghost" href="whatsnew.html">What's new →</a>
+          <a class="ghost" href="methodology.html">Methodology →</a>
+        </nav>
       </div>
     </div>
     <div class="hd-right">
-    <nav class="toplinks" aria-label="More">
-      <a class="ghost" href="whatsnew.html">What's new →</a>
-      <a class="ghost" href="methodology.html">Methodology →</a>
-    </nav>
     <div class="controls">
       <div class="tb-group">
         <label class="sel" for="sel-year">Election <select id="sel-year"></select></label>

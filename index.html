@@ -76,6 +76,15 @@ label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px
 .toplinks { display: flex; gap: 4px 16px; flex-wrap: wrap; align-self: start; margin-left: auto }
 .toplinks a.ghost { border: 0; background: none; padding: 2px 0; height: auto; color: var(--muted); font-size: 13px; font-weight: 500; text-decoration: none }
 .toplinks a.ghost:hover { color: var(--ink) }
+.plain-tog { border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 2px 10px; font: 500 12px var(--body); cursor: pointer }
+.plain-tog[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+/* plain page: one flat background, no panel outlines or card backgrounds (toggle in the header) */
+html.plain body { background: var(--surface) }
+html.plain .panel, html.plain .controls, html.plain .strip, html.plain .stat, html.plain .kv.pstats {
+  border-color: transparent !important; box-shadow: none !important; background: transparent !important }
+html.plain .strip { gap: 0 }
+html.plain .panel { padding-left: 0; padding-right: 0 }
+html.plain .main, html.plain .wrap > section + section { row-gap: 28px }
 .tbl-more { display: flex; justify-content: center; padding-top: 4px }
 /* money split bar (races table) */
 td.c-money { min-width: 190px }
@@ -374,11 +383,10 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
         <div class="eyebrow" id="eyebrow"></div>
         <h1 id="title">2026 Election Forecast</h1>
         <div class="title-rule" aria-hidden="true"><i></i><i></i></div>
-        <div class="sub" id="asof"></div>
-        <div class="sub"><a href="map.html" style="color:inherit">Map of forecast components by state →</a></div>
       </div>
     </div>
     <nav class="toplinks" aria-label="More">
+      <button class="plain-tog" id="plain-tog" aria-pressed="false" title="Remove the panel outlines and use a plain white page">Plain page</button>
       <a class="ghost" href="whatsnew.html">What's new →</a>
       <a class="ghost" href="methodology.html">Methodology →</a>
     </nav>
@@ -1438,7 +1446,7 @@ function render() {
   const E = new Date(DS.election + "T12:00"), days = Math.round((E - new Date(DS.asof + "T12:00")) / 864e5);
   $("title").textContent = `${DS.year} Election Forecast`;
   $("eyebrow").textContent = `${DS.year % 4 === 0 ? "President, Senate & House" : "Midterms · Senate & House"}`;
-  $("asof").textContent = `Forecast as of ${new Date(DS.asof + "T12:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}, ${days === 0 ? "Election Day" : days + " days before the election"} · ${DS.n_sims.toLocaleString()} simulations per model${DS.year !== F.live.year ? " · using only what was known then" : ""}`;
+  if ($("asof")) $("asof").textContent = `Forecast as of ${new Date(DS.asof + "T12:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}, ${days === 0 ? "Election Day" : days + " days before the election"} · ${DS.n_sims.toLocaleString()} simulations per model${DS.year !== F.live.year ? " · using only what was known then" : ""}`;
   drawCountdown(days);
   $("app").classList.toggle("display-only", !!(DS._prep[mode] && DS._prep[mode].static));   // past dates on the public site: no calls
   $("map-h").textContent = showResult ? "What happened" : scenario ? "One simulated outcome" : DS._prep[mode].static ? "Forecast odds on this date" : view === "house" ? "Click a district to call it" : "Click a state to call it";
@@ -1450,6 +1458,9 @@ function render() {
 document.querySelectorAll("[data-hm]").forEach(b => b.addEventListener("click", () => { houseMap = b.dataset.hm; buildMapLayer(); render(); }));
 $("hm-base").addEventListener("change", e => { shiftBase = e.target.value; render(); });
 $("hm-rel").addEventListener("change", () => render());
+{ let on = false; try { on = localStorage.getItem("plainPage") === "1"; } catch (e) {}
+  const set = v => { document.documentElement.classList.toggle("plain", v); $("plain-tog").setAttribute("aria-pressed", v); try { localStorage.setItem("plainPage", v ? "1" : "0"); } catch (e) {} };
+  set(on); $("plain-tog").onclick = () => set(!document.documentElement.classList.contains("plain")); }
 DS = prep(F.live);
 fillSelectors();
 buildMapLayer();

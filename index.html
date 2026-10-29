@@ -401,7 +401,12 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
   #tbl > tbody > tr.row > .c-exp .exp { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px }
   .pick button { width: 40px; height: 34px; font-size: 14px }
   #tbl > tbody > tr.detail, #tbl > tbody > tr.detail > td { display: block; padding: 10px 0 }
-  #tbl table.polls { display: table; min-width: 560px } #tbl table.polls thead { display: table-header-group } #tbl table.polls tbody { display: table-row-group }
+  #tbl table.polls { display: table; min-width: 0; width: 100% }
+  #tbl table.polls th:nth-child(2), #tbl table.polls td:nth-child(2), #tbl table.polls th:nth-child(4), #tbl table.polls td:nth-child(4),
+  #tbl table.polls th:nth-child(7), #tbl table.polls td:nth-child(7), #tbl table.polls th:nth-child(8), #tbl table.polls td:nth-child(8),
+  #tbl table.polls th:nth-child(9), #tbl table.polls td:nth-child(9) { display: none }    /* phones: dates, pollster, D, R, adjusted, weight */
+  #tbl .tbl-wrap.polls-scroll { overflow-x: hidden }
+  #tbl table.polls .wbar { max-width: 40px } #tbl table.polls thead { display: table-header-group } #tbl table.polls tbody { display: table-row-group }
   .detail td { overflow-x: auto; -webkit-overflow-scrolling: touch }
   .polls { min-width: 540px }
   .iss-row, .iss-ends { grid-template-columns: 132px minmax(0, 1fr) 62px }
@@ -1280,25 +1285,10 @@ function recordBlock(r) {
       <div class="rec-legend"><span><span class="trk"><i class="mc D"></i></span><span class="trk"><i class="mc R"></i></span> candidate's votes</span><span><span class="trk"><i class="mp D"></i></span><span class="trk"><i class="mp R"></i></span> typical member of that party from a seat with these voters</span><span><span class="trk"><i class="mv"></i></span> average voter for this seat (CES opinion)</span></div>
 ` : ""}</div></div></div>`;
 }
-function axisLock(box) {
-  // touch: decide from the first few pixels whether a swipe is up/down or sideways, and let the box scroll only that
-  // way for that gesture (both axes scroll otherwise, so a slightly diagonal swipe sends it off in both directions)
-  if (box.dataset.axisLock) return; box.dataset.axisLock = "1";
-  let x0 = 0, y0 = 0, axis = null;
-  box.addEventListener("touchstart", e => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; axis = null; box.style.overflowX = ""; box.style.overflowY = ""; }, { passive: true });
-  box.addEventListener("touchmove", e => {
-    if (axis) return;
-    const t = e.touches[0], dx = Math.abs(t.clientX - x0), dy = Math.abs(t.clientY - y0);
-    if (Math.max(dx, dy) < 6) return;
-    axis = dx > dy ? "x" : "y";
-    if (axis === "x") box.style.overflowY = "hidden"; else box.style.overflowX = "hidden";
-  }, { passive: true });
-}
 function fitPolls(dr) {
   // show the first 10 polls; more than that scroll inside the box (header stays put)
   const t = dr.querySelector("table.polls"); if (!t) return;
   const box = t.closest(".tbl-wrap"), rows = t.tBodies[0] ? t.tBodies[0].rows : [];
-  axisLock(box);
   if (rows.length <= 10) { box.classList.remove("polls-scroll"); box.style.maxHeight = ""; return; }
   box.classList.add("polls-scroll");
   const h = rows[9].offsetTop + rows[9].offsetHeight;

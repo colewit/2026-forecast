@@ -1336,7 +1336,7 @@ function drawTable(c, b) {
   const hasMoney = rows0.some(r => r.dem_money != null || r.rep_money != null);
   const pastResult = rows0.some(r => r.actual != null);
   $("tbl-head").innerHTML = `<th data-sort="state">State</th><th>Candidates</th>${view === "pres" ? '<th class="r" data-sort="ev">EV</th>' : ""}<th data-sort="p">Chance of D win</th>
-    <th class="r" data-sort="mean" title="The forecast margin; ± is its spread (1 sd)">Forecast</th><th class="r" data-sort="avg" title="Poll average; ± is how far the model expects the average to miss the result (1 sd)">Polls</th><th class="r" data-sort="fund" title="The forecast with no polls; ± is its spread (1 sd)">Fundamentals</th>
+    <th class="r" data-sort="mean" title="The forecast margin; ± is its spread (1 sd)">Forecast</th><th class="r" data-sort="avg" title="Poll average; ± is how far the model expects the average to miss the result (1 sd)">Polls</th><th class="r" data-sort="fund" title="The forecast with no polls">Fundamentals</th>
     ${pastResult ? '<th class="r" data-sort="actual">Result</th>' : ""}${hasMoney ? '<th data-sort="money" title="Raised: the candidates’ campaign committees. Outside: super PACs, party committees and groups spending for a side. Democrats to the left of the line, Republicans to the right; both rows on one scale. Hover for totals.">Money</th>' : ""}<th class="c-pick">Call it</th>${hasPolls ? "<th></th>" : ""}`;
   $("tbl-polls-note").hidden = !hasPolls;
   document.querySelectorAll("#tbl th[data-sort]").forEach(th => {
@@ -1371,7 +1371,7 @@ function drawTable(c, b) {
         <div class="delta">${pk ? "your pick" : Math.abs(d) >= 0.005 ? (d > 0 ? "▲ D " : "▼ D ") + Math.abs(d * 100).toFixed(0) + " pts vs. no picks" : "&nbsp;"}</div>` : "–"}</td>
       <td class="r c-mean ${mean > 0 ? "dem" : "rep"}" data-l="Forecast">${r.contested && c.n ? fmtM(mean) : "–"}<div class="delta">${st && st[i] && st[i].sd ? "±" + st[i].sd.toFixed(1) : ""}</div></td>
       <td class="r c-avg ${r.avg == null ? "" : r.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(r.avg)}<div class="delta">${pollSpread(r)}</div></td>
-      <td class="r c-fund ${r.fund_mean == null ? "" : r.fund_mean > 0 ? "dem" : "rep"}" data-l="Fundamentals">${fmtM(r.fund_mean)}<div class="delta">${(() => { const f = (((DS._prep.fundamentals || {}).stats || {})[view] || [])[i]; return f && f.sd ? `<span title="Spread of the fundamentals-only forecast (no polls)">±${f.sd.toFixed(1)}</span>` : "&nbsp;"; })()}</div></td>
+      <td class="r c-fund ${r.fund_mean == null ? "" : r.fund_mean > 0 ? "dem" : "rep"}" data-l="Fundamentals">${fmtM(r.fund_mean)}<div class="delta">&nbsp;</div></td>
       ${pastResult ? `<td class="r c-res ${r.actual > 0 ? "dem" : "rep"}" data-l="Result">${fmtM(r.actual)}${wrong ? '<div class="delta">upset</div>' : ""}</td>` : ""}
       ${hasMoney ? moneyCell(r) : ""}
       <td class="c-pick">${r.contested ? `<span class="pick"><button class="D" aria-pressed="${pk === "D"}" aria-label="Call ${r.state} for Democrats">D</button><button class="R" aria-pressed="${pk === "R"}" aria-label="Call ${r.state} for Republicans">R</button></span>` : ""}</td>

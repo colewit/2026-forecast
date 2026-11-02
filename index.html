@@ -255,6 +255,8 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
 #tbl tr.row td:first-child { border-left: 1px solid var(--line); border-radius: 10px 0 0 10px }
 #tbl tr.row td:last-child { border-right: 1px solid var(--line); border-radius: 0 10px 10px 0 }
 #tbl tr.row:hover td { background: color-mix(in srgb, var(--ink) 6%, var(--surface)) }
+#tbl tr.gen-row td { background: color-mix(in srgb, var(--ink) 5%, var(--surface)) }
+#tbl tr.gen-row .cands .sub { display: block; font-size: 11px; margin-top: 2px }
 #tbl tr.row:has(+ tr.detail) td { border-bottom-color: transparent }
 #tbl tr.row:has(+ tr.detail) td:first-child { border-bottom-left-radius: 0 }
 #tbl tr.row:has(+ tr.detail) td:last-child { border-bottom-right-radius: 0 }
@@ -669,7 +671,10 @@ function compute(usePicks = true) {
   out.house = m.htot ? { p: hc / n, mean: hsum / n, lo: qs(hh, .05), hi: qs(hh, .95) } : null;
   out.pres = presArr ? { p: pc / n, mean: esum / n, lo: qs(eh, .05), hi: qs(eh, .95) } : null;
   out.joint = jt.size ? [...jt].flatMap(([k, [n_, d_]]) => [Math.floor(k / 1000), k % 1000, n_, d_]) : null;     // flat [sen, house, sims, D-control sims, ...]
-  out.env = envs.length ? { mean: envs.reduce((a, b) => a + b, 0) / envs.length, lo: qs(envs, .05), hi: qs(envs, .95) } : null;
+  if (envs.length) {
+    const em = envs.reduce((a, b) => a + b, 0) / envs.length, ev2 = envs.reduce((a, b) => a + (b - em) ** 2, 0) / envs.length;
+    out.env = { mean: em, sd: Math.sqrt(ev2), p: envs.filter(x => x > 0).length / envs.length, lo: qs(envs, .05), hi: qs(envs, .95) };
+  } else out.env = null;
   for (const v of views()) {
     const arr = m[v], R = DS.views[v].length, w = new Float64Array(R), s = new Float64Array(R);
     for (let j = 0; j < N; j++) { if (!keep[j]) continue; for (let i = 0; i < R; i++) { const x = arr[i * N + j]; s[i] += x; if (x > 0) w[i]++; } }
@@ -1332,7 +1337,8 @@ function pollSpread(r) {
 }
 function drawTable(c, b) {
   const rows0 = DS.views[view], st = DS._prep[mode].stats[view];
-  const hasPolls = (!!DS.polls && view === "sen") || rows0.some(r => r.fx);
+  const genKey = `${DS.year}-generic-US`, genOK = view !== "pres" && !DS._prep[mode].natp && !!(DS.polls && DS.polls[genKey]) && !!c.env;
+  const hasPolls = (!!DS.polls && view === "sen") || rows0.some(r => r.fx) || genOK;
   const hasMoney = rows0.some(r => r.dem_money != null || r.rep_money != null);
   const pastResult = rows0.some(r => r.actual != null);
   $("tbl-head").innerHTML = `<th data-sort="state">State</th><th>Candidates</th>${view === "pres" ? '<th class="r" data-sort="ev">EV</th>' : ""}<th data-sort="p">Chance of D win</th>
@@ -1357,6 +1363,31 @@ function drawTable(c, b) {
   const noun = view === "pres" ? "states" : view === "house" ? "House districts" : "races";
   $("tbl-h").textContent = showAllRaces || nComp === rows.length ? `${noun[0].toUpperCase() + noun.slice(1)} (${rows.length})` : `Competitive ${noun} (${nComp})`;
   const tbody = document.querySelector("#tbl tbody"); tbody.innerHTML = "";
+  if (genOK) {
+    // the generic ballot: national House vote, polls -> forecast national environment, same columns as the races
+    const gp = DS.polls[genKey], key = "nat:generic", fundAgg = (DS.modes.combined || {}).agg || {};
+    const newest = gp.reduce((a, p) => (p.stop || p.end) > a ? (p.stop || p.end) : a, "");
+    const gr = { race: genKey, generic: true, state: "US", label: "Generic ballot", avg: (DS.generic || {}).avg, n_polls: gp.length,
+                 fund_mean: mode === "polls" ? null : fundAgg.house_pop_fund, actual: (DS.actual_totals || {}).house_vote,
+                 newest_age: newest ? Math.round((new Date((DS.asof || "") + "T00:00:00") - new Date(newest + "T00:00:00")) / 864e5) : null };
+    const e = c.env, eb = b.env, d = Object.keys(picks).length && eb ? e.p - eb.p : 0;
+    const tr = document.createElement("tr"); tr.className = "row gen-row";
+    tr.innerHTML = `
+      <td class="st">Generic ballot<span class="tag">national</span></td>
+      <td class="cands"><span class="dem">Democrats</span><br><span class="rep">Republicans</span><div class="sub">House popular vote</div></td>
+      <td class="pcell c-p"><div class="pbar"><i style="width:${e.p * 100}%"></i><b><span>${pct(e.p)}</span><span>${pct(1 - e.p)}</span></b></div>
+        <div class="delta">${Math.abs(d) >= 0.005 ? (d > 0 ? "▲ D " : "▼ D ") + Math.abs(d * 100).toFixed(0) + " pts vs. no picks" : "to win the national vote"}</div></td>
+      <td class="r c-mean ${e.mean > 0 ? "dem" : "rep"}" data-l="Forecast">${fmtM(e.mean)}<div class="delta">±${e.sd.toFixed(1)}</div></td>
+      <td class="r c-avg ${gr.avg == null ? "" : gr.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(gr.avg)}<div class="delta">${(DS.generic || {}).n_polls || gp.length} polls</div></td>
+      <td class="r c-fund ${gr.fund_mean == null ? "" : gr.fund_mean > 0 ? "dem" : "rep"}" data-l="Fundamentals">${fmtM(gr.fund_mean)}<div class="delta">&nbsp;</div></td>
+      ${pastResult ? `<td class="r c-res ${gr.actual > 0 ? "dem" : "rep"}" data-l="Result">${fmtM(gr.actual)}</td>` : ""}
+      ${hasMoney ? "<td></td>" : ""}
+      <td class="c-pick"></td>
+      <td class="c-exp"><button class="exp" aria-expanded="${open.has(key)}" title="${open.has(key) ? "Hide polls" : "Every generic ballot poll in the average"}">${open.has(key) ? "Hide ▴" : "Polls ▾"}</button></td>`;
+    tr.querySelector(".exp").onclick = () => { open.has(key) ? open.delete(key) : open.add(key); render(); };
+    tbody.appendChild(tr);
+    if (open.has(key)) { const dr = tbody.appendChild(detailRow(gr, -1, c, b)); requestAnimationFrame(() => fitPolls(dr)); }
+  }
   for (const { r, i, p, mean } of shown) {
     const key = view + ":" + raceKey(r), pk = picks[key];
     const d = any && !pk && c.n ? p - b.view[view].p[i] : 0;
@@ -1465,21 +1496,21 @@ function detailRow(r, i, c, b) {
       <td><span class="wbar" style="width:${(p.share / mx * 60).toFixed(0)}px"></span> <span class="mono">${(p.share * 100).toFixed(1)}%</span></td></tr>`).join("");
   const st = ((DS._prep[mode].stats || {})[view] || [])[i] || {}, nH = (DS.house_size || {})[r.state] || 0;
   const hNow = c.houseState ? c.houseState[r.state] : null, hBase = b.houseState ? b.houseState[r.state] : null;
-  const rec = recordBlock(r), ns = ps.length;
+  const rec = r.generic ? "" : recordBlock(r), ns = ps.length;
   tr.innerHTML = `<td colspan="12"><div class="det">
     <section class="det-sec"><h3 class="det-h">Polls</h3><div class="detail-grid"><div class="tbl-wrap">${ps.length ? `<table class="polls"><thead><tr><th>Field dates</th><th title="When the poll was released: VoteHub's added date, else the first day this forecast saw it (~ = estimated as the day after fieldwork)">Published</th><th>Pollster</th><th class="r">Sample</th><th class="r">D</th><th class="r">R</th><th class="r">Margin</th><th class="r" title="Minus the pollster's house effect: its historical lean, updated with how its polls this cycle compare with other pollsters' in the same races">House effect adj.</th><th class="r" title="Registered-voter and all-adult polls moved to a likely-voter basis, by this cycle's gap between the likely- and registered-voter versions of the same polls">LV adj.</th><th class="r"><span class="fd-long">Adjusted</span><span class="fd-short">Adj.</span></th><th>Weight</th></tr></thead><tbody>${rowsHtml}</tbody></table>` : `<p class="sub">No public polls in the last 120 days. This race runs on fundamentals and similar races.</p>`}</div>
       ${(() => { const sh = mode === "fundamentals" ? 0 : Math.round((st.ps || 0) * 100);
         return `<div class="kv pstats">
         <div class="ps-big"><span class="ps-k">Poll average</span><span class="ps-v ${r.avg == null ? "" : r.avg > 0 ? "dem" : "rep"}">${fmtM(r.avg)}</span>${r.und != null ? `<span class="ps-d">${r.und.toFixed(0)}% undecided</span>` : ""}</div>
-        <div class="ps-pair"><div><span class="ps-v2">${ns}</span><span class="ps-k">poll${ns === 1 ? "" : "s"} in the average</span></div>
+        <div class="ps-pair"><div><span class="ps-v2">${ns}</span><span class="ps-k">poll${ns === 1 ? "" : "s"} ${r.generic ? "carrying weight" : "in the average"}</span></div>
           <div><span class="ps-v2">${r.newest_age == null ? "–" : r.newest_age}</span><span class="ps-k">${r.newest_age === 1 ? "day" : "days"} since the newest poll</span></div></div>
-        <div class="ps-share"><div class="ps-row"><span class="ps-k">Forecast from polls</span><b>${sh}%</b></div>
-          <div class="ps-bar"><i style="width:${sh}%"></i></div><span class="ps-d">the rest from fundamentals</span></div></div>`; })()}</div></section>
+        ${r.generic ? `<div class="ps-share"><span class="ps-d">The forecast national environment (${fmtM(c.env.mean)}) also learns from every race's polls, not just these.</span></div>` : `<div class="ps-share"><div class="ps-row"><span class="ps-k">Forecast from polls</span><b>${sh}%</b></div>
+          <div class="ps-bar"><i style="width:${sh}%"></i></div><span class="ps-d">the rest from fundamentals</span></div>`}</div>`; })()}</div></section>
     <section class="det-sec"><h3 class="det-h">Fundamentals</h3><div class="det-fund">
       <div class="kv pstats">
-        <div class="ps-big"><span class="ps-k">Fundamentals</span><span class="ps-v ${r.fund_mean == null ? "" : r.fund_mean > 0 ? "dem" : "rep"}">${fmtM(r.fund_mean)}</span><span class="ps-d">the forecast with no polls</span></div>
+        <div class="ps-big"><span class="ps-k">Fundamentals</span><span class="ps-v ${r.fund_mean == null ? "" : r.fund_mean > 0 ? "dem" : "rep"}">${fmtM(r.fund_mean)}</span><span class="ps-d">${r.generic ? "the national House vote with no polls" : "the forecast with no polls"}</span></div>
 </div>
-      <div>${drivers(r, st) || '<span class="sub">No breakdown for this race.</span>'}</div></div></section>
+      <div>${r.generic ? "" : drivers(r, st) || '<span class="sub">No breakdown for this race.</span>'}</div></div></section>
     ${rec ? `<section class="det-sec"><h3 class="det-h">Issues &amp; voting record</h3>${rec}</section>` : ""}
   </div></td>`;
   return tr;

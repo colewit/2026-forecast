@@ -255,6 +255,9 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .tally .tl-win { font: 700 12px var(--body); padding: 4px 6px; border-radius: 6px; text-align: center; color: #fff }
 .tally .tl-win.D { background: var(--dem) }
 .tally .tl-win.R { background: var(--rep) }
+.tally .tl-win.proj { background: transparent; border: 1.5px solid currentColor }
+.tally .tl-win.proj.D { color: var(--dem) }
+.tally .tl-win.proj.R { color: var(--rep) }
 @media (max-width: 900px) { .tip3 { grid-template-columns: minmax(0, 1fr) } .tally { border: 0; padding-inline: 0 } }
 .tip3 .tip { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); margin-top: 4px }
 .tip-pane { min-width: 0 }
@@ -264,6 +267,9 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .call-chip { font: 500 12px var(--body); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; color: var(--ink) }
 .call-chip b { font-weight: 700; margin-left: 2px }
 .call-chip { display: inline-flex; align-items: center }
+.called-wrap { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start }
+.called-wrap .tip-calls { flex-direction: column; flex-wrap: nowrap; align-items: flex-start }
+.mini-ch { width: 100%; max-width: 230px; height: auto; display: block; margin-top: 6px; justify-self: center }
 .call-x { border: 0; background: none; padding: 0 0 0 5px; margin: 0; font: 600 13px/1 var(--body); color: var(--muted); cursor: pointer }
 .call-x:hover { color: var(--ink) }
 .call-chip.D { background: color-mix(in srgb, var(--dem) 14%, var(--surface)); border-color: color-mix(in srgb, var(--dem) 45%, var(--line)) }
@@ -1703,6 +1709,34 @@ function likeliest(c, v, k) {
   if (!t) return null;
   return t.map((x, i) => [i, x]).filter(([, x]) => x >= 0.005).sort((a, b) => b[1] - a[1]).slice(0, k);
 }
+// small seat arc (Senate, House) or electoral-vote strip (President) for the Called panel: every seat colored by its
+// rating given your calls, called seats hatched over their color
+let miniUid = 0;
+function miniChamber(c, v, rows, called) {
+  const isCalled = new Set(called.map(([i]) => i)), uid = "hz" + (++miniUid);
+  const hatch = `<defs><pattern id="${uid}" patternUnits="userSpaceOnUse" width="2.6" height="2.6" patternTransform="rotate(45)"><rect width="1.1" height="2.6" style="fill:var(--surface)"/></pattern></defs>`;
+  if (v === "pres") {
+    const st = rows.map((r, i) => ({ p: c.view.pres.p[i], ev: r.ev, cd: isCalled.has(i), lab: r.label || r.state })).sort((a, b) => b.p - a.p);
+    let x = 0; const W = 200, sc = W / 538;
+    const bars = st.map(q => { const w = q.ev * sc, x0 = x; x += w;
+      return `<rect x="${x0.toFixed(2)}" y="6" width="${Math.max(w - 0.4, 0.3).toFixed(2)}" height="22" style="fill:${shade(ratingOf(q.p))}"><title>${q.lab} (${q.ev})${q.cd ? ", called" : ""}</title></rect>${q.cd ? `<rect x="${x0.toFixed(2)}" y="6" width="${Math.max(w - 0.4, 0.3).toFixed(2)}" height="22" fill="url(#${uid})" pointer-events="none"/>` : ""}`; }).join("");
+    return `<svg class="mini-ch" viewBox="0 0 200 36" aria-label="Electoral votes, called states hatched">${hatch}${bars}<line x1="${270 * sc}" x2="${270 * sc}" y1="2" y2="32" style="stroke:var(--ink)" stroke-width="1"/></svg>`;
+  }
+  let seats;
+  if (v === "sen") { const hd = DS.sen_holdover_dem, hr = 100 - hd - rows.length;
+    seats = Array(hd).fill([1, false]).concat(rows.map((r, i) => [c.view.sen.p[i], isCalled.has(i)]), Array(Math.max(hr, 0)).fill([0, false])); }
+  else { const comp = rows.map((r, i) => [c.view.house.p[i], isCalled.has(i)]), safeD = Math.max(0, Math.round(c.house.mean - comp.reduce((a, [p]) => a + p, 0)));
+    seats = Array(safeD).fill([1, false]).concat(comp, Array(Math.max(435 - safeD - comp.length, 0)).fill([0, false])); }
+  seats.sort((a, b) => b[0] - a[0]);
+  const N = seats.length, nr = N > 300 ? 10 : 5, R0 = N > 300 ? 34 : 40, R1 = 96, radii = Array.from({ length: nr }, (_, i) => R0 + (R1 - R0) * i / (nr - 1));
+  const tot = radii.reduce((a, r) => a + r, 0), counts = radii.map(r => Math.round(N * r / tot)); counts[nr - 1] += N - counts.reduce((a, b) => a + b, 0);
+  const pos = []; radii.forEach((r, i) => { const k = counts[i]; for (let j = 0; j < k; j++) pos.push({ a: Math.PI * (1 - (k === 1 ? .5 : j / (k - 1))), r }); });
+  pos.sort((u, w) => (w.a - u.a) || (u.r - w.r));
+  const dotR = Math.min(4.4, 0.42 * (R1 - R0) / (nr - 1) + 0.5, 0.45 * Math.PI * R1 / counts[nr - 1]);
+  const dots = seats.map(([p, cd], i) => { const { a, r } = pos[i], x = (100 + r * Math.cos(a)).toFixed(1), y = (100 - r * Math.sin(a)).toFixed(1);
+    return `<circle cx="${x}" cy="${y}" r="${dotR.toFixed(2)}" style="fill:${shade(ratingOf(p))}"/>${cd ? `<circle cx="${x}" cy="${y}" r="${dotR.toFixed(2)}" fill="url(#${uid})"/>` : ""}`; }).join("");
+  return `<svg class="mini-ch" viewBox="0 0 200 106" aria-label="${v === "house" ? "House" : "Senate"} seats, called seats hatched">${hatch}${dots}<line x1="100" x2="100" y1="${100 - R1 - 6}" y2="${100 - R0 + 6}" style="stroke:var(--ink)" stroke-width="1" stroke-dasharray="2 2"/></svg>`;
+}
 $("tip").addEventListener("click", e => { const x = e.target.closest(".call-x"); if (x) setPick(x.dataset.key, null); });
 function drawTipping(c, b) {
   const v = view, rows = DS.views[v] || [], box = $("tip"), m = DS._prep[mode], N = DS.n_sims;
@@ -1786,9 +1820,9 @@ function drawTipping(c, b) {
     <h4>${scenario ? "Result" : "Locked in"}</h4>
     <div class="tl-n"><span class="dem">${tD}</span><span class="rep">${tR}</span></div>
     <div class="tl-bar"><i class="d" style="width:${(tD / tot * 100).toFixed(1)}%"></i><i class="r" style="width:${(tR / tot * 100).toFixed(1)}%"></i><b style="left:${(line / tot * 100).toFixed(1)}%"></b></div>
-    <div class="ts">${unit} · ${line} to win</div>${winner ? `<div class="tl-win ${winner}">${winner === "D" ? "Democrats" : "Republicans"} win ${v === "pres" ? "the presidency" : v === "house" ? "the House" : "the Senate"}</div>` : ""}</div>`;
+    <div class="ts">${unit} · ${line} to win</div>${winner ? `<div class="tl-win ${winner}${winner0 ? "" : " proj"}">${winner === "D" ? "Democrats" : "Republicans"} ${winner0 ? "win" : "are projected to win"} ${v === "pres" ? "the presidency" : v === "house" ? "the House" : "the Senate"}</div>` : ""}</div>`;
   box.className = "tip3";
-  box.innerHTML = `<div class="tip-pane"><h4>Called</h4><div class="tip">${callHtml}</div></div>
+  box.innerHTML = `<div class="tip-pane"><h4>Called${called.length ? ` <span class="tip-ct">${called.length}</span>` : ""}</h4><div class="called-wrap">${callHtml}${miniChamber(c, v, rows, called)}</div></div>
     ${tallyHtml}
     <div class="tip-pane"><h4>Flips${flips.length ? ` <span class="tip-ct">D +${fl("D")} · R +${fl("R")}</span>` : ""}</h4><div class="tip">${flipHtml}</div></div>
     <div class="tip-pane"><h4>${scenario ? "Tipping point" : "Likeliest tipping points"}</h4><div class="tip">${tipHtml}</div></div>`;

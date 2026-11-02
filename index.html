@@ -167,6 +167,11 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .ch-flip.back svg { transform: scaleX(-1) }
 .ch-check { vertical-align: -3px; margin-left: 6px }
 .tip-card .tn .ch-check { display: inline-block; width: 13px; height: 13px; margin-left: 4px; vertical-align: -2px }
+.tile-check { display: block; margin: 1px auto 0 }
+.tile-check circle { fill: #fff }
+.tile-check path { fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round }
+.tile-check.D path { stroke: var(--dem) }
+.tile-check.R path { stroke: var(--rep) }
 #map .map-check { pointer-events: none }
 #map .map-check circle { fill: #fff; stroke: none }
 #map .map-check path { stroke-width: 2.2; fill: none; transition: none }
@@ -856,7 +861,8 @@ function drawGrid(c) {
       title = `${r.label}: ${r.dem || "Democrat"} vs ${r.rep || "Republican"}. ${pk ? "Your pick" : pct(p) + " chance of a Democratic win, " + fmtM(mean)}`; }
     b.style.background = f; b.style.color = col;
     b.classList.toggle("locked", !!pk && !scenario && !showResult);
-    b.innerHTML = `<b>${r.district ? r.district : "AL"}</b>${txt}`;
+    const called = !!pk && !scenario && !showResult;
+    b.innerHTML = `<b>${r.district ? r.district : "AL"}</b>${called ? `<svg class="tile-check ${pk}" viewBox="-8 -8 16 16" width="14" height="14" aria-hidden="true"><circle r="7.5"/><path d="M-3.4 0.2 -1 2.6 3.6 -2.2"/></svg>` : txt}`;
     b.title = title; b.setAttribute("aria-label", title);
   });
 }

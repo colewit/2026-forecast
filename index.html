@@ -1381,7 +1381,11 @@ function drawTable(c, b) {
       <td class="r c-avg ${gr.avg == null ? "" : gr.avg > 0 ? "dem" : "rep"}" data-l="Polls">${fmtM(gr.avg)}<div class="delta">${(DS.generic || {}).n_polls || gp.length} polls</div></td>
       <td class="r c-fund ${gr.fund_mean == null ? "" : gr.fund_mean > 0 ? "dem" : "rep"}" data-l="Fundamentals">${fmtM(gr.fund_mean)}<div class="delta">&nbsp;</div></td>
       ${pastResult ? `<td class="r c-res ${gr.actual > 0 ? "dem" : "rep"}" data-l="Result">${fmtM(gr.actual)}</td>` : ""}
-      ${hasMoney ? "<td></td>" : ""}
+      ${hasMoney ? (() => {   // totals over every race in this table
+        const sum = k => rows0.reduce((a, x) => a + (x[k] || 0), 0), anyOut = rows0.some(x => x.dem_out != null || x.rep_out != null);
+        const cell = moneyCell({ dem_money: sum("dem_money"), rep_money: sum("rep_money"), dem_out: anyOut ? sum("dem_out") : null, rep_out: anyOut ? sum("rep_out") : null });
+        return cell.replace('title="', `title="All ${view === "house" ? "House" : "Senate"} races: `).replace("</td>", '<div class="mb-rel">all races</div></td>');
+      })() : ""}
       <td class="c-pick"></td>
       <td class="c-exp"><button class="exp" aria-expanded="${open.has(key)}" title="${open.has(key) ? "Hide polls" : "Every generic ballot poll in the average"}">${open.has(key) ? "Hide ▴" : "Polls ▾"}</button></td>`;
     tr.querySelector(".exp").onclick = () => { open.has(key) ? open.delete(key) : open.add(key); render(); };

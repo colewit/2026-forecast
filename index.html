@@ -1718,6 +1718,10 @@ function tipOne(c, v, j) {      // the tipping race of one simulation, or -1
   let cum = 0; for (const i of o) { cum += v === "pres" ? rows[i].ev : 1; if (cum >= need) return i; }
   return -1;
 }
+let medAreaC = null;
+const medianArea = () => { if (medAreaC) return medAreaC; const g = (window.FORECAST || {}).geo || {};
+  const a = Object.keys(g).filter(k => !k.endsWith("_c")).map(k => shapeBox(g[k])[4]).sort((x, y) => x - y);
+  return (medAreaC = a[Math.floor(a.length / 2)] || 1); };
 // bounding box [x, y, w, h] of a state's main pieces (rings at least 4% the area of the largest) and their total area
 function shapeBox(d) {
   const rings = d.split("M").filter(Boolean).map(seg => { const n = (seg.match(/-?\d+(\.\d+)?/g) || []).map(Number), pts = [];
@@ -1742,7 +1746,10 @@ function tipCard(r, col, big, sub, title, bar, check) {
   if (d) { const [bx, by, bw, bh, area] = shapeBox(d), A = 2.4;
     // every shape covers about the same share of its card (by its area, so a near-rectangle like Kansas isn't oversized),
     // and the box is the main landmass only (Alaska's Aleutians don't shrink it); anything outside is clipped
-    const W = Math.max(Math.sqrt(area * A / 0.36), bw * 1.08, bh * 1.08 * A), H = W / A, cx = bx + bw / 2, cy = by + bh / 2;
+    // the share grows gently with the state's real size (area^0.2 against the median state): Texas a little bigger, Rhode
+    // Island a little smaller, not to scale
+    const F = Math.min(0.5, Math.max(0.26, 0.36 * Math.pow(area / medianArea(), 0.2)));
+    const W = Math.max(Math.sqrt(area * A / F), bw * 1.08, bh * 1.08 * A), H = W / A, cx = bx + bw / 2, cy = by + bh / 2;
     shape = `<svg viewBox="${(cx - W / 2).toFixed(1)} ${(cy - H / 2).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${d}" fill="${col}" stroke="var(--surface)" stroke-width="${(W / 160).toFixed(2)}"/></svg>`; }
   else shape = `<svg viewBox="0 0 100 58" aria-hidden="true"><rect x="22" y="2" width="54" height="54" rx="9" fill="${col}"/></svg>`;
   return `<div class="tip-card" title="${title}">${shape}<div class="tn"><span>${lab}${check ? tipCheck(check) : ""}</span><small>${r.special ? "special" : ""}</small></div>

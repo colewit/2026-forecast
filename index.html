@@ -166,7 +166,10 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .ch-flip:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
 .ch-flip.back svg { transform: scaleX(-1) }
 .ch-check { vertical-align: -3px; margin-left: 6px }
-.tip-card .tv .ch-check { margin-left: 0; vertical-align: -4px }
+.tip-card .tn .ch-check { display: inline-block; width: 13px; height: 13px; margin-left: 4px; vertical-align: -2px }
+.map-check circle { fill: #fff; stroke: none }
+.map-check.D path { stroke: var(--dem) }
+.map-check.R path { stroke: var(--rep) }
 .ch-check.D circle { fill: var(--dem) }
 .ch-check.R circle { fill: var(--rep) }
 .ch-panel.ch-joint { flex: 2 1 560px; max-width: 1000px }
@@ -813,7 +816,9 @@ function buildMapLayer() {
       const [x, y] = F.geo[st + "_c"];
       const a = document.createElementNS(SVGNS, "text"); a.setAttribute("x", x); a.setAttribute("y", y - 1); a.classList.add("lbl");
       const b = document.createElementNS(SVGNS, "text"); b.setAttribute("x", x); b.setAttribute("y", y + 11); b.classList.add("pct");
-      overlay.append(a, b); mapItems[key].label = { a, b };
+      const ck = document.createElementNS(SVGNS, "g"); ck.classList.add("map-check"); ck.setAttribute("transform", `translate(${x},${y + 8})`); ck.style.display = "none";
+      ck.innerHTML = `<circle r="7.5"/><path d="M-3.4 0.2 -1 2.6 3.6 -2.2" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+      overlay.append(a, b, ck); mapItems[key].label = { a, b, ck };
     }
   }
 }
@@ -910,8 +915,10 @@ function drawMap(c) {
     }
     const name = r.state + (r.dem_ind ? " (I)" : "") + (view === "pres" ? ` ${r.ev}` : "");
     if (it.shape) { it.shape.setAttribute("fill", f); it.shape.classList.toggle("locked", !!pk && !scenario && !showResult); it.shape.querySelector("title").textContent = title; it.shape.setAttribute("aria-label", title); }
-    if (it.label) { it.label.a.textContent = name; it.label.b.textContent = txt; it.label.a.setAttribute("fill", col); it.label.b.setAttribute("fill", col); }
-    if (it.callout) { it.callout.r.setAttribute("fill", f); it.callout.r.classList.toggle("locked", !!pk); it.callout.tx.textContent = `${r.state} ${txt}`; it.callout.tx.setAttribute("fill", col); it.callout.r.querySelector("title").textContent = title; }
+    const called = !!pk && !scenario && !showResult && r.contested;
+    if (it.label) { it.label.a.textContent = name; it.label.b.textContent = called ? "" : txt; it.label.a.setAttribute("fill", col); it.label.b.setAttribute("fill", col);
+      if (it.label.ck) { it.label.ck.style.display = called ? "" : "none"; it.label.ck.setAttribute("class", `map-check ${pk || ""}`); } }
+    if (it.callout) { it.callout.r.setAttribute("fill", f); it.callout.r.classList.toggle("locked", !!pk); it.callout.tx.textContent = called ? `${r.state} ✓` : `${r.state} ${txt}`; it.callout.tx.setAttribute("fill", col); it.callout.r.querySelector("title").textContent = title; }
   }
 }
 
@@ -1708,13 +1715,13 @@ function pathBox(d) {
   return [x0, y0, x1 - x0, y1 - y0];
 }
 // one card: the state's shape (a square for a House district) in `col`, the race, a big value, a bar and a line under it
-function tipCard(r, col, big, sub, title, bar) {
+function tipCard(r, col, big, sub, title, bar, check) {
   const lab = r.label || r.state, d = view !== "house" ? ((window.FORECAST || {}).geo || {})[r.state] : null;
   let shape;
   if (d) { const [bx, by, bw, bh] = pathBox(d), pad = Math.max(bw, bh) * 0.06;
     shape = `<svg viewBox="${bx - pad} ${by - pad} ${bw + 2 * pad} ${bh + 2 * pad}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${d}" fill="${col}" stroke="var(--surface)" stroke-width="${Math.max(bw, bh) / 60}"/></svg>`; }
   else shape = `<svg viewBox="0 0 100 58" aria-hidden="true"><rect x="22" y="2" width="54" height="54" rx="9" fill="${col}"/></svg>`;
-  return `<div class="tip-card" title="${title}">${shape}<div class="tn"><span>${lab}</span><small>${r.special ? "special" : ""}</small></div>
+  return `<div class="tip-card" title="${title}">${shape}<div class="tn"><span>${lab}${check ? tipCheck(check) : ""}</span><small>${r.special ? "special" : ""}</small></div>
     ${big != null ? `<div class="tv">${big}</div>` : ""}${bar != null ? `<div class="tb"><i style="width:${(bar * 100).toFixed(1)}%"></i></div>` : ""}<div class="ts">${sub}</div></div>`;
 }
 const tipPct = x => (x >= 0.995 ? ">99" : Math.round(x * 100) || "<1") + "%";
@@ -1773,7 +1780,7 @@ function drawTipping(c, b) {
     const mx = top.length ? top[0][1] : 1;
     box.className = "tip";
     box.innerHTML = top.map(([i, x]) => { const r = rows[i], p = c.view[v].p[i];
-      return tipCard(r, fill(p), x >= 0.995 ? tipCheck(p > 0.5 ? "D" : "R") : tipPct(x), `D wins ${pct(p)}`, `${r.label || r.state}: decides ${v === "pres" ? "the presidency" : "control"} in ${(x * 100).toFixed(1)}% of simulations; Democrats win it in ${pct(p)}`, x / mx); }).join("");
+      return tipCard(r, fill(p), tipPct(x), `D wins ${pct(p)}`, `${r.label || r.state}: decides ${v === "pres" ? "the presidency" : "control"} in ${(x * 100).toFixed(1)}% of simulations; Democrats win it in ${pct(p)}`, x / mx, x >= 0.995 ? (p > 0.5 ? "D" : "R") : null); }).join("");
     $("tip-note").textContent = `Share of simulations in which each race ${v === "pres" ? "puts the winner past 269 electoral votes" : v === "house" ? "is the 218th seat for the majority" : "is the seat that decides control"}. Shape color is the Democratic chance; the top ${top.length} cover ${Math.round(top.reduce((a, [, x]) => a + x, 0) * 100)}%.`;
     return;
   }
@@ -1812,7 +1819,7 @@ function drawTipping(c, b) {
     const top = c.n ? likeliest(c, v, 4) : null, mx = top && top.length ? top[0][1] : 1;
     tipHtml = top && top.length ? top.map(([i, x]) => { const r = rows[i], p = c.view[v].p[i];
       const pk = picks[v + ":" + raceKey(r)];
-      return tipCard(r, pk ? sideCol(pk) : fill(p), pk || x >= 0.995 ? tipCheck(pk || (p > 0.5 ? "D" : "R")) : tipPct(x), pk ? `Called ${pk} · decides it in ${tipPct(x)}` : `D wins ${pct(p)}`, `${r.label || r.state}: decides control in ${(x * 100).toFixed(1)}% of the simulations left by your calls${pk ? "; called for " + (pk === "D" ? "Democrats" : "Republicans") : ""}`, x / mx); }).join("")
+      return tipCard(r, pk ? sideCol(pk) : fill(p), tipPct(x), pk ? `Called ${pk}` : `D wins ${pct(p)}`, `${r.label || r.state}: decides control in ${(x * 100).toFixed(1)}% of the simulations left by your calls${pk ? "; called for " + (pk === "D" ? "Democrats" : "Republicans") : ""}`, x / mx, pk || (x >= 0.995 ? (p > 0.5 ? "D" : "R") : null)); }).join("")
       : '<span class="sub">Your calls settle it: no simulations left to decide.</span>';
   }
   // tally between the panels: seats (or electoral votes) locked in by your calls, counting Senate seats not up; in a

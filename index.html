@@ -246,7 +246,7 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .tip { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; margin-top: 6px }
 .tip-card { border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 7px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
   background: color-mix(in srgb, var(--ink) 2%, var(--surface)) }
-.tip-card svg { width: 100%; height: 58px; display: block; cursor: default; overflow: visible }
+.tip-card svg { width: 100%; height: 58px; display: block; cursor: default; overflow: hidden }
 .tip-card .tn { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font: 600 12px var(--body); color: var(--ink); white-space: nowrap; overflow: hidden }
 .tip-card .tn small { font-weight: 500; color: var(--muted); font-size: 11px }
 .tip-card .tv { font: 700 20px var(--body); font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1 }
@@ -1716,6 +1716,17 @@ function tipOne(c, v, j) {      // the tipping race of one simulation, or -1
   let cum = 0; for (const i of o) { cum += v === "pres" ? rows[i].ev : 1; if (cum >= need) return i; }
   return -1;
 }
+// bounding box [x, y, w, h] of a state's main pieces (rings at least 4% the area of the largest) and their total area
+function shapeBox(d) {
+  const rings = d.split("M").filter(Boolean).map(seg => { const n = (seg.match(/-?\d+(\.\d+)?/g) || []).map(Number), pts = [];
+    for (let k = 0; k + 1 < n.length; k += 2) pts.push([n[k], n[k + 1]]);
+    let a = 0; for (let k = 0; k < pts.length; k++) { const [x1, y1] = pts[k], [x2, y2] = pts[(k + 1) % pts.length]; a += x1 * y2 - x2 * y1; }
+    return { pts, a: Math.abs(a) / 2 }; });
+  const big = Math.max(...rings.map(r => r.a)), keep = rings.filter(r => r.a >= 0.04 * big);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, area = 0;
+  for (const r of keep) { area += r.a; for (const [x, y] of r.pts) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+  return [x0, y0, x1 - x0, y1 - y0, area];
+}
 function pathBox(d) {
   const nums = (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -1726,8 +1737,11 @@ function pathBox(d) {
 function tipCard(r, col, big, sub, title, bar, check) {
   const lab = r.label || r.state, d = view !== "house" ? ((window.FORECAST || {}).geo || {})[r.state] : null;
   let shape;
-  if (d) { const [bx, by, bw, bh] = pathBox(d), pad = Math.max(bw, bh) * 0.06;
-    shape = `<svg viewBox="${bx - pad} ${by - pad} ${bw + 2 * pad} ${bh + 2 * pad}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${d}" fill="${col}" stroke="var(--surface)" stroke-width="${Math.max(bw, bh) / 60}"/></svg>`; }
+  if (d) { const [bx, by, bw, bh, area] = shapeBox(d), A = 2.4;
+    // every shape covers about the same share of its card (by its area, so a near-rectangle like Kansas isn't oversized),
+    // and the box is the main landmass only (Alaska's Aleutians don't shrink it); anything outside is clipped
+    const W = Math.max(Math.sqrt(area * A / 0.3), bw * 1.08, bh * 1.08 * A), H = W / A, cx = bx + bw / 2, cy = by + bh / 2;
+    shape = `<svg viewBox="${(cx - W / 2).toFixed(1)} ${(cy - H / 2).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${d}" fill="${col}" stroke="var(--surface)" stroke-width="${(W / 160).toFixed(2)}"/></svg>`; }
   else shape = `<svg viewBox="0 0 100 58" aria-hidden="true"><rect x="22" y="2" width="54" height="54" rx="9" fill="${col}"/></svg>`;
   return `<div class="tip-card" title="${title}">${shape}<div class="tn"><span>${lab}${check ? tipCheck(check) : ""}</span><small>${r.special ? "special" : ""}</small></div>
     ${big != null ? `<div class="tv">${big}</div>` : ""}${bar != null ? `<div class="tb"><i style="width:${(bar * 100).toFixed(1)}%"></i></div>` : ""}<div class="ts">${sub}</div></div>`;

@@ -1,0 +1,1586 @@
+{
+ "asof": "2026-11-02",
+ "election": "2026-11-03",
+ "forecast": "poli_data 2026 House/Senate forecast",
+ "generic_ballot_avg_dem": 8.51,
+ "house": {
+  "dem_seats_90": [
+   223.0,
+   266.0
+  ],
+  "dem_seats_mean": 243.2817,
+  "p_dem_control": 0.9833
+ },
+ "n_sims": 10000,
+ "note": "House rows cover the competitive districts the model simulates; margins are D minus R in points.",
+ "races": [
+  {
+   "dem": "Bill Hill",
+   "label": "AK-AL",
+   "mean_margin_dem": -2.07,
+   "office": "house",
+   "p_dem": 0.3418,
+   "poll_avg": -3.94,
+   "race": "2026-house-AK-00",
+   "rep": "Nick Begich Iii"
+  },
+  {
+   "dem": "Shomari Figures",
+   "label": "AL-02",
+   "mean_margin_dem": -1.5,
+   "office": "house",
+   "p_dem": 0.3949,
+   "poll_avg": -1.24,
+   "race": "2026-house-AL-02",
+   "rep": "Rhett Marques"
+  },
+  {
+   "dem": "Chris Jones",
+   "label": "AR-02",
+   "mean_margin_dem": -5.89,
+   "office": "house",
+   "p_dem": 0.1339,
+   "poll_avg": -3.15,
+   "race": "2026-house-AR-02",
+   "rep": "French Hill"
+  },
+  {
+   "dem": "Amish Shah",
+   "label": "AZ-01",
+   "mean_margin_dem": 5.33,
+   "office": "house",
+   "p_dem": 0.8406,
+   "poll_avg": 2.74,
+   "race": "2026-house-AZ-01",
+   "rep": "Jay Feely"
+  },
+  {
+   "dem": "Jonathan Nez",
+   "label": "AZ-02",
+   "mean_margin_dem": -0.29,
+   "office": "house",
+   "p_dem": 0.4789,
+   "poll_avg": 2.79,
+   "race": "2026-house-AZ-02",
+   "rep": "Eli Crane"
+  },
+  {
+   "dem": "Elizabeth Lee",
+   "label": "AZ-05",
+   "mean_margin_dem": -9.53,
+   "office": "house",
+   "p_dem": 0.0724,
+   "poll_avg": null,
+   "race": "2026-house-AZ-05",
+   "rep": "Mark Lamb"
+  },
+  {
+   "dem": "Joanna Mendoza",
+   "label": "AZ-06",
+   "mean_margin_dem": 7.95,
+   "office": "house",
+   "p_dem": 0.8908,
+   "poll_avg": null,
+   "race": "2026-house-AZ-06",
+   "rep": "Juan Ciscomani"
+  },
+  {
+   "dem": "Bernadette Greene-Placentia",
+   "label": "AZ-08",
+   "mean_margin_dem": -6.84,
+   "office": "house",
+   "p_dem": 0.1425,
+   "poll_avg": null,
+   "race": "2026-house-AZ-08",
+   "rep": "Abraham Hamadeh"
+  },
+  {
+   "dem": "Michael Masuda",
+   "label": "CA-05",
+   "mean_margin_dem": -10.54,
+   "office": "house",
+   "p_dem": 0.0515,
+   "poll_avg": null,
+   "race": "2026-house-CA-05",
+   "rep": "Tom Mcclintock"
+  },
+  {
+   "dem": "Adam Gray",
+   "label": "CA-13",
+   "mean_margin_dem": 11.85,
+   "office": "house",
+   "p_dem": 0.9721,
+   "poll_avg": null,
+   "race": "2026-house-CA-13",
+   "rep": "Kevin Lincoln"
+  },
+  {
+   "dem": "Randy Villegas",
+   "label": "CA-22",
+   "mean_margin_dem": 7.58,
+   "office": "house",
+   "p_dem": 0.9056,
+   "poll_avg": 10.0,
+   "race": "2026-house-CA-22",
+   "rep": "David Valadao"
+  },
+  {
+   "dem": "Tessa Lynn Hodge",
+   "label": "CA-23",
+   "mean_margin_dem": -11.55,
+   "office": "house",
+   "p_dem": 0.0347,
+   "poll_avg": null,
+   "race": "2026-house-CA-23",
+   "rep": "Jay Obernolte"
+  },
+  {
+   "dem": "Dwayne Romero",
+   "label": "CO-03",
+   "mean_margin_dem": -0.37,
+   "office": "house",
+   "p_dem": 0.4759,
+   "poll_avg": -2.2,
+   "race": "2026-house-CO-03",
+   "rep": "Jeff Hurd"
+  },
+  {
+   "dem": "Eileen Laubacher",
+   "label": "CO-04",
+   "mean_margin_dem": -4.78,
+   "office": "house",
+   "p_dem": 0.2035,
+   "poll_avg": -8.54,
+   "race": "2026-house-CO-04",
+   "rep": "Lauren Boebert"
+  },
+  {
+   "dem": "Jessica Killin",
+   "label": "CO-05",
+   "mean_margin_dem": -2.96,
+   "office": "house",
+   "p_dem": 0.3291,
+   "poll_avg": null,
+   "race": "2026-house-CO-05",
+   "rep": "Jeff Crank"
+  },
+  {
+   "dem": "Manny Rutinel",
+   "label": "CO-08",
+   "mean_margin_dem": 6.14,
+   "office": "house",
+   "p_dem": 0.8333,
+   "poll_avg": null,
+   "race": "2026-house-CO-08",
+   "rep": "Gabe Evans"
+  },
+  {
+   "dem": "Amanda Green",
+   "label": "FL-02",
+   "mean_margin_dem": -5.77,
+   "office": "house",
+   "p_dem": 0.1879,
+   "poll_avg": null,
+   "race": "2026-house-FL-02",
+   "rep": "Austin Rogers"
+  },
+  {
+   "dem": "Lashonda Holloway",
+   "label": "FL-04",
+   "mean_margin_dem": -6.58,
+   "office": "house",
+   "p_dem": 0.1581,
+   "poll_avg": null,
+   "race": "2026-house-FL-04",
+   "rep": "Aaron Bean"
+  },
+  {
+   "dem": "Rachel Grage",
+   "label": "FL-05",
+   "mean_margin_dem": -11.35,
+   "office": "house",
+   "p_dem": 0.0351,
+   "poll_avg": null,
+   "race": "2026-house-FL-05",
+   "rep": "John Rutherford"
+  },
+  {
+   "dem": "Bale Dalton",
+   "label": "FL-07",
+   "mean_margin_dem": 1.32,
+   "office": "house",
+   "p_dem": 0.5778,
+   "poll_avg": null,
+   "race": "2026-house-FL-07",
+   "rep": "Ryan Elijah"
+  },
+  {
+   "dem": "Jennifer Jenkins",
+   "label": "FL-08",
+   "mean_margin_dem": -6.94,
+   "office": "house",
+   "p_dem": 0.1398,
+   "poll_avg": null,
+   "race": "2026-house-FL-08",
+   "rep": "Mike Haridopolos"
+  },
+  {
+   "dem": "Darren Soto",
+   "label": "FL-09",
+   "mean_margin_dem": -5.54,
+   "office": "house",
+   "p_dem": 0.1946,
+   "poll_avg": null,
+   "race": "2026-house-FL-09",
+   "rep": "Dan Green"
+  },
+  {
+   "dem": "James Pericola",
+   "label": "FL-11",
+   "mean_margin_dem": -6.4,
+   "office": "house",
+   "p_dem": 0.1583,
+   "poll_avg": null,
+   "race": "2026-house-FL-11",
+   "rep": "Joe Strada"
+  },
+  {
+   "dem": "Kimberly Overman",
+   "label": "FL-12",
+   "mean_margin_dem": -9.62,
+   "office": "house",
+   "p_dem": 0.0648,
+   "poll_avg": null,
+   "race": "2026-house-FL-12",
+   "rep": "Gus Bilirakis"
+  },
+  {
+   "dem": "Leela Gray",
+   "label": "FL-13",
+   "mean_margin_dem": -0.8,
+   "office": "house",
+   "p_dem": 0.4335,
+   "poll_avg": -0.05,
+   "race": "2026-house-FL-13",
+   "rep": "Anna Paulina Luna"
+  },
+  {
+   "dem": "Kathy Castor",
+   "label": "FL-14",
+   "mean_margin_dem": 3.59,
+   "office": "house",
+   "p_dem": 0.7326,
+   "poll_avg": 5.79,
+   "race": "2026-house-FL-14",
+   "rep": "Mike Beltran"
+  },
+  {
+   "dem": "Kelly Kirschner",
+   "label": "FL-16",
+   "mean_margin_dem": -2.93,
+   "office": "house",
+   "p_dem": 0.3069,
+   "poll_avg": -4.69,
+   "race": "2026-house-FL-16",
+   "rep": "Sydney Gruters"
+  },
+  {
+   "dem": "Curtis Gibson",
+   "label": "FL-18",
+   "mean_margin_dem": -11.69,
+   "office": "house",
+   "p_dem": 0.0303,
+   "poll_avg": null,
+   "race": "2026-house-FL-18",
+   "rep": "Scott Franklin"
+  },
+  {
+   "dem": "James Martin",
+   "label": "FL-21",
+   "mean_margin_dem": -8.43,
+   "office": "house",
+   "p_dem": 0.0937,
+   "poll_avg": null,
+   "race": "2026-house-FL-21",
+   "rep": "Brian Mast"
+  },
+  {
+   "dem": "Pia Dandiya",
+   "label": "FL-22",
+   "mean_margin_dem": 0.22,
+   "office": "house",
+   "p_dem": 0.5101,
+   "poll_avg": 0.0,
+   "race": "2026-house-FL-22",
+   "rep": "Casey Askar"
+  },
+  {
+   "dem": "Jared Moskowitz",
+   "label": "FL-25",
+   "mean_margin_dem": 3.8,
+   "office": "house",
+   "p_dem": 0.758,
+   "poll_avg": 3.95,
+   "race": "2026-house-FL-25",
+   "rep": "Scott Singer"
+  },
+  {
+   "dem": "Nicole Locklin",
+   "label": "FL-26",
+   "mean_margin_dem": -10.9,
+   "office": "house",
+   "p_dem": 0.0449,
+   "poll_avg": null,
+   "race": "2026-house-FL-26",
+   "rep": "Mario Díaz-Balart"
+  },
+  {
+   "dem": "Eliott Rodriguez",
+   "label": "FL-27",
+   "mean_margin_dem": -3.96,
+   "office": "house",
+   "p_dem": 0.2353,
+   "poll_avg": -2.76,
+   "race": "2026-house-FL-27",
+   "rep": "María Elvira Salazar"
+  },
+  {
+   "dem": "Amanda Hollowell",
+   "label": "GA-01",
+   "mean_margin_dem": -9.42,
+   "office": "house",
+   "p_dem": 0.0782,
+   "poll_avg": null,
+   "race": "2026-house-GA-01",
+   "rep": "Jim Kingston"
+  },
+  {
+   "dem": "Ceretta Smith",
+   "label": "GA-12",
+   "mean_margin_dem": -9.46,
+   "office": "house",
+   "p_dem": 0.0672,
+   "poll_avg": null,
+   "race": "2026-house-GA-12",
+   "rep": "Rick Allen"
+  },
+  {
+   "dem": "Christina Bohannan",
+   "label": "IA-01",
+   "mean_margin_dem": 5.45,
+   "office": "house",
+   "p_dem": 0.8223,
+   "poll_avg": 2.44,
+   "race": "2026-house-IA-01",
+   "rep": "Mariannette Miller-Meeks"
+  },
+  {
+   "dem": "Lindsay James",
+   "label": "IA-02",
+   "mean_margin_dem": 1.75,
+   "office": "house",
+   "p_dem": 0.6244,
+   "poll_avg": 3.78,
+   "race": "2026-house-IA-02",
+   "rep": "Joe Mitchell"
+  },
+  {
+   "dem": "Sarah Trone Garriott",
+   "label": "IA-03",
+   "mean_margin_dem": 6.37,
+   "office": "house",
+   "p_dem": 0.8437,
+   "poll_avg": null,
+   "race": "2026-house-IA-03",
+   "rep": "Zach Nunn"
+  },
+  {
+   "dem": "J.D. Ford",
+   "label": "IN-05",
+   "mean_margin_dem": -4.54,
+   "office": "house",
+   "p_dem": 0.1891,
+   "poll_avg": -1.68,
+   "race": "2026-house-IN-05",
+   "rep": "Victoria Spartz"
+  },
+  {
+   "dem": "Don Coover",
+   "label": "KS-02",
+   "mean_margin_dem": -8.86,
+   "office": "house",
+   "p_dem": 0.0786,
+   "poll_avg": null,
+   "race": "2026-house-KS-02",
+   "rep": "Derek Schmidt"
+  },
+  {
+   "dem": "Zach Dembo",
+   "label": "KY-06",
+   "mean_margin_dem": -1.25,
+   "office": "house",
+   "p_dem": 0.4095,
+   "poll_avg": 4.66,
+   "race": "2026-house-KY-06",
+   "rep": "Ralph Alvarado"
+  },
+  {
+   "dem": "Dan Schwartz",
+   "label": "MD-01",
+   "mean_margin_dem": -10.52,
+   "office": "house",
+   "p_dem": 0.0495,
+   "poll_avg": null,
+   "race": "2026-house-MD-01",
+   "rep": "Andy Harris"
+  },
+  {
+   "dem": "Matthew Dunlap",
+   "label": "ME-02",
+   "mean_margin_dem": -4.05,
+   "office": "house",
+   "p_dem": 0.2289,
+   "poll_avg": -6.2,
+   "race": "2026-house-ME-02",
+   "rep": "Paul Lepage"
+  },
+  {
+   "dem": "Callie Barr",
+   "label": "MI-01",
+   "mean_margin_dem": -10.26,
+   "office": "house",
+   "p_dem": 0.0513,
+   "poll_avg": null,
+   "race": "2026-house-MI-01",
+   "rep": "Jack Bergman"
+  },
+  {
+   "dem": "Sean Mccann",
+   "label": "MI-04",
+   "mean_margin_dem": -0.07,
+   "office": "house",
+   "p_dem": 0.4902,
+   "poll_avg": null,
+   "race": "2026-house-MI-04",
+   "rep": "Bill Huizenga"
+  },
+  {
+   "dem": "William Lawrence",
+   "label": "MI-07",
+   "mean_margin_dem": 7.67,
+   "office": "house",
+   "p_dem": 0.9208,
+   "poll_avg": 8.69,
+   "race": "2026-house-MI-07",
+   "rep": "Tom Barrett"
+  },
+  {
+   "dem": "Christina Hines",
+   "label": "MI-10",
+   "mean_margin_dem": 2.19,
+   "office": "house",
+   "p_dem": 0.6482,
+   "poll_avg": -2.86,
+   "race": "2026-house-MI-10",
+   "rep": "Michael Bouchard Jr."
+  },
+  {
+   "dem": "Jake Johnson",
+   "label": "MN-01",
+   "mean_margin_dem": -1.34,
+   "office": "house",
+   "p_dem": 0.4005,
+   "poll_avg": 0.15,
+   "race": "2026-house-MN-01",
+   "rep": "Brad Finstad"
+  },
+  {
+   "dem": "Trina Swanson",
+   "label": "MN-08",
+   "mean_margin_dem": -6.09,
+   "office": "house",
+   "p_dem": 0.1665,
+   "poll_avg": null,
+   "race": "2026-house-MN-08",
+   "rep": "Pete Stauber"
+  },
+  {
+   "dem": "Fred Wellman",
+   "label": "MO-02",
+   "mean_margin_dem": 1.5,
+   "office": "house",
+   "p_dem": 0.624,
+   "poll_avg": 2.31,
+   "race": "2026-house-MO-02",
+   "rep": "Ann Wagner"
+  },
+  {
+   "dem": "Sam Forstag",
+   "label": "MT-01",
+   "mean_margin_dem": 3.75,
+   "office": "house",
+   "p_dem": 0.7797,
+   "poll_avg": 4.82,
+   "race": "2026-house-MT-01",
+   "rep": "Aaron Flint"
+  },
+  {
+   "dem": "Don Davis",
+   "label": "NC-01",
+   "mean_margin_dem": 4.82,
+   "office": "house",
+   "p_dem": 0.7889,
+   "poll_avg": 11.58,
+   "race": "2026-house-NC-01",
+   "rep": "Laurie Buckhout"
+  },
+  {
+   "dem": "Raymond Smith Jr.",
+   "label": "NC-03",
+   "mean_margin_dem": -6.92,
+   "office": "house",
+   "p_dem": 0.1404,
+   "poll_avg": null,
+   "race": "2026-house-NC-03",
+   "rep": "Greg Murphy"
+  },
+  {
+   "dem": "Chuck Hubbard",
+   "label": "NC-05",
+   "mean_margin_dem": -4.5,
+   "office": "house",
+   "p_dem": 0.2487,
+   "poll_avg": null,
+   "race": "2026-house-NC-05",
+   "rep": "Virginia Foxx"
+  },
+  {
+   "dem": "Cyril Jefferson",
+   "label": "NC-06",
+   "mean_margin_dem": -10.87,
+   "office": "house",
+   "p_dem": 0.0433,
+   "poll_avg": null,
+   "race": "2026-house-NC-06",
+   "rep": "Addison Mcdowell"
+  },
+  {
+   "dem": "Kimberly Hardy",
+   "label": "NC-07",
+   "mean_margin_dem": -3.86,
+   "office": "house",
+   "p_dem": 0.2752,
+   "poll_avg": null,
+   "race": "2026-house-NC-07",
+   "rep": "David Rouzer"
+  },
+  {
+   "dem": "Colby Watson",
+   "label": "NC-08",
+   "mean_margin_dem": -11.2,
+   "office": "house",
+   "p_dem": 0.0358,
+   "poll_avg": null,
+   "race": "2026-house-NC-08",
+   "rep": "Mark Harris"
+  },
+  {
+   "dem": "Richard Ojeda",
+   "label": "NC-09",
+   "mean_margin_dem": -4.8,
+   "office": "house",
+   "p_dem": 0.1952,
+   "poll_avg": -5.05,
+   "race": "2026-house-NC-09",
+   "rep": "Richard Hudson"
+  },
+  {
+   "dem": "Ashley Bell",
+   "label": "NC-10",
+   "mean_margin_dem": -8.76,
+   "office": "house",
+   "p_dem": 0.0892,
+   "poll_avg": null,
+   "race": "2026-house-NC-10",
+   "rep": "Pat Harrigan"
+  },
+  {
+   "dem": "Jamie Ager",
+   "label": "NC-11",
+   "mean_margin_dem": 8.08,
+   "office": "house",
+   "p_dem": 0.933,
+   "poll_avg": 13.79,
+   "race": "2026-house-NC-11",
+   "rep": "Jennifer Balkcom"
+  },
+  {
+   "dem": "Paul Barringer",
+   "label": "NC-13",
+   "mean_margin_dem": -5.58,
+   "office": "house",
+   "p_dem": 0.1926,
+   "poll_avg": null,
+   "race": "2026-house-NC-13",
+   "rep": "Brad Knott"
+  },
+  {
+   "dem": "Lakesha Womack",
+   "label": "NC-14",
+   "mean_margin_dem": -8.1,
+   "office": "house",
+   "p_dem": 0.1006,
+   "poll_avg": null,
+   "race": "2026-house-NC-14",
+   "rep": "Tim Moore"
+  },
+  {
+   "dem": "Chris Backemeyer",
+   "label": "NE-01",
+   "mean_margin_dem": -4.48,
+   "office": "house",
+   "p_dem": 0.1987,
+   "poll_avg": -1.94,
+   "race": "2026-house-NE-01",
+   "rep": "Mike Flood"
+  },
+  {
+   "dem": "Zack Mullock",
+   "label": "NJ-02",
+   "mean_margin_dem": -6.46,
+   "office": "house",
+   "p_dem": 0.1585,
+   "poll_avg": null,
+   "race": "2026-house-NJ-02",
+   "rep": "Jeff Van Drew"
+  },
+  {
+   "dem": "Rebecca Bennett",
+   "label": "NJ-07",
+   "mean_margin_dem": 4.38,
+   "office": "house",
+   "p_dem": 0.7485,
+   "poll_avg": null,
+   "race": "2026-house-NJ-07",
+   "rep": "Thomas Kean Jr."
+  },
+  {
+   "dem": "Nellie Pou",
+   "label": "NJ-09",
+   "mean_margin_dem": 10.44,
+   "office": "house",
+   "p_dem": 0.9471,
+   "poll_avg": null,
+   "race": "2026-house-NJ-09",
+   "rep": "Rosie Pino"
+  },
+  {
+   "dem": "Gabe Vasquez",
+   "label": "NM-02",
+   "mean_margin_dem": 7.67,
+   "office": "house",
+   "p_dem": 0.9243,
+   "poll_avg": 3.06,
+   "race": "2026-house-NM-02",
+   "rep": "Greg Cunningham"
+  },
+  {
+   "dem": "Dina Titus",
+   "label": "NV-01",
+   "mean_margin_dem": 11.66,
+   "office": "house",
+   "p_dem": 0.9678,
+   "poll_avg": null,
+   "race": "2026-house-NV-01",
+   "rep": "Carrie Buck"
+  },
+  {
+   "dem": "Teresa Benitez-Thompson",
+   "label": "NV-02",
+   "mean_margin_dem": -2.62,
+   "office": "house",
+   "p_dem": 0.3145,
+   "poll_avg": -3.05,
+   "race": "2026-house-NV-02",
+   "rep": "David Flippo"
+  },
+  {
+   "dem": "Susie Lee",
+   "label": "NV-03",
+   "mean_margin_dem": 9.39,
+   "office": "house",
+   "p_dem": 0.9282,
+   "poll_avg": null,
+   "race": "2026-house-NV-03",
+   "rep": "Martin O'Donnell"
+  },
+  {
+   "dem": "Chris Gallant",
+   "label": "NY-01",
+   "mean_margin_dem": -2.38,
+   "office": "house",
+   "p_dem": 0.3585,
+   "poll_avg": null,
+   "race": "2026-house-NY-01",
+   "rep": "Nick Lalota"
+  },
+  {
+   "dem": "Patrick Halpin",
+   "label": "NY-02",
+   "mean_margin_dem": -9.6,
+   "office": "house",
+   "p_dem": 0.0692,
+   "poll_avg": null,
+   "race": "2026-house-NY-02",
+   "rep": "Andrew Garbarino"
+  },
+  {
+   "dem": "Tom Suozzi",
+   "label": "NY-03",
+   "mean_margin_dem": 8.49,
+   "office": "house",
+   "p_dem": 0.9072,
+   "poll_avg": null,
+   "race": "2026-house-NY-03",
+   "rep": "Mike Lipetri"
+  },
+  {
+   "dem": "Laura Gillen",
+   "label": "NY-04",
+   "mean_margin_dem": 12.19,
+   "office": "house",
+   "p_dem": 0.9731,
+   "poll_avg": null,
+   "race": "2026-house-NY-04",
+   "rep": "Jeanine Driscoll"
+  },
+  {
+   "dem": "Cait Conley",
+   "label": "NY-17",
+   "mean_margin_dem": 3.92,
+   "office": "house",
+   "p_dem": 0.7666,
+   "poll_avg": 2.76,
+   "race": "2026-house-NY-17",
+   "rep": "Mike Lawler"
+  },
+  {
+   "dem": "Josh Riley",
+   "label": "NY-19",
+   "mean_margin_dem": 12.52,
+   "office": "house",
+   "p_dem": 0.9757,
+   "poll_avg": null,
+   "race": "2026-house-NY-19",
+   "rep": "Peter Oberacker"
+  },
+  {
+   "dem": "Blake Gendebien",
+   "label": "NY-21",
+   "mean_margin_dem": -3.58,
+   "office": "house",
+   "p_dem": 0.234,
+   "poll_avg": -0.66,
+   "race": "2026-house-NY-21",
+   "rep": "Anthony Constantino"
+  },
+  {
+   "dem": "Greg Landsman",
+   "label": "OH-01",
+   "mean_margin_dem": 7.36,
+   "office": "house",
+   "p_dem": 0.9094,
+   "poll_avg": 4.45,
+   "race": "2026-house-OH-01",
+   "rep": "Eric Conroy"
+  },
+  {
+   "dem": "Brian Poindexter",
+   "label": "OH-07",
+   "mean_margin_dem": 4.41,
+   "office": "house",
+   "p_dem": 0.8004,
+   "poll_avg": 7.49,
+   "race": "2026-house-OH-07",
+   "rep": "Max Miller"
+  },
+  {
+   "dem": "Vanessa Enoch",
+   "label": "OH-08",
+   "mean_margin_dem": -9.55,
+   "office": "house",
+   "p_dem": 0.0652,
+   "poll_avg": null,
+   "race": "2026-house-OH-08",
+   "rep": "Warren Davidson"
+  },
+  {
+   "dem": "Marcy Kaptur",
+   "label": "OH-09",
+   "mean_margin_dem": 2.43,
+   "office": "house",
+   "p_dem": 0.668,
+   "poll_avg": -3.2,
+   "race": "2026-house-OH-09",
+   "rep": "Derek Merrin"
+  },
+  {
+   "dem": "Kristina Knickerbocker",
+   "label": "OH-10",
+   "mean_margin_dem": -0.73,
+   "office": "house",
+   "p_dem": 0.4485,
+   "poll_avg": -0.2,
+   "race": "2026-house-OH-10",
+   "rep": "Mike Turner"
+  },
+  {
+   "dem": "Don Leonard",
+   "label": "OH-15",
+   "mean_margin_dem": 1.25,
+   "office": "house",
+   "p_dem": 0.5893,
+   "poll_avg": 2.4,
+   "race": "2026-house-OH-15",
+   "rep": "Mike Carey"
+  },
+  {
+   "dem": "John Croisant",
+   "label": "OK-01",
+   "mean_margin_dem": -11.66,
+   "office": "house",
+   "p_dem": 0.0357,
+   "poll_avg": null,
+   "race": "2026-house-OK-01",
+   "rep": "Mark Tedford"
+  },
+  {
+   "dem": "Jena Nelson",
+   "label": "OK-05",
+   "mean_margin_dem": -7.99,
+   "office": "house",
+   "p_dem": 0.1054,
+   "poll_avg": null,
+   "race": "2026-house-OK-05",
+   "rep": "Stephanie Bice"
+  },
+  {
+   "dem": "Bob Harvie",
+   "label": "PA-01",
+   "mean_margin_dem": -0.48,
+   "office": "house",
+   "p_dem": 0.4619,
+   "poll_avg": -4.25,
+   "race": "2026-house-PA-01",
+   "rep": "Brian Fitzpatrick"
+  },
+  {
+   "dem": "Bob Brooks",
+   "label": "PA-07",
+   "mean_margin_dem": 6.48,
+   "office": "house",
+   "p_dem": 0.8906,
+   "poll_avg": 5.84,
+   "race": "2026-house-PA-07",
+   "rep": "Ryan Mackenzie"
+  },
+  {
+   "dem": "Paige Cognetti",
+   "label": "PA-08",
+   "mean_margin_dem": 4.12,
+   "office": "house",
+   "p_dem": 0.7783,
+   "poll_avg": 4.79,
+   "race": "2026-house-PA-08",
+   "rep": "Rob Bresnahan"
+  },
+  {
+   "dem": "Janelle Stelson",
+   "label": "PA-10",
+   "mean_margin_dem": 5.67,
+   "office": "house",
+   "p_dem": 0.8115,
+   "poll_avg": null,
+   "race": "2026-house-PA-10",
+   "rep": "Scott Perry"
+  },
+  {
+   "dem": "Nancy Lacore",
+   "label": "SC-01",
+   "mean_margin_dem": -0.93,
+   "office": "house",
+   "p_dem": 0.4332,
+   "poll_avg": 0.94,
+   "race": "2026-house-SC-01",
+   "rep": "Jenny Costa Honeycutt"
+  },
+  {
+   "dem": "Zyon Khalifa",
+   "label": "SC-02",
+   "mean_margin_dem": -8.01,
+   "office": "house",
+   "p_dem": 0.0999,
+   "poll_avg": null,
+   "race": "2026-house-SC-02",
+   "rep": "Joe Wilson"
+  },
+  {
+   "dem": "Victoria Broderick",
+   "label": "TN-04",
+   "mean_margin_dem": -10.21,
+   "office": "house",
+   "p_dem": 0.0524,
+   "poll_avg": null,
+   "race": "2026-house-TN-04",
+   "rep": "Scott Desjarlais"
+  },
+  {
+   "dem": "Chaz Molder",
+   "label": "TN-05",
+   "mean_margin_dem": -7.41,
+   "office": "house",
+   "p_dem": 0.1271,
+   "poll_avg": null,
+   "race": "2026-house-TN-05",
+   "rep": "Charlie Hatcher"
+  },
+  {
+   "dem": "Darden Copeland",
+   "label": "TN-07",
+   "mean_margin_dem": -10.67,
+   "office": "house",
+   "p_dem": 0.0472,
+   "poll_avg": null,
+   "race": "2026-house-TN-07",
+   "rep": "Matt Van Epps"
+  },
+  {
+   "dem": "Heidi Kuhn",
+   "label": "TN-08",
+   "mean_margin_dem": -11.6,
+   "office": "house",
+   "p_dem": 0.034,
+   "poll_avg": null,
+   "race": "2026-house-TN-08",
+   "rep": "David Kustoff"
+  },
+  {
+   "dem": "Justin J. Pearson",
+   "label": "TN-09",
+   "mean_margin_dem": -6.85,
+   "office": "house",
+   "p_dem": 0.1104,
+   "poll_avg": -4.35,
+   "race": "2026-house-TN-09",
+   "rep": "Brent Taylor"
+  },
+  {
+   "dem": "Shaun Finnie",
+   "label": "TX-02",
+   "mean_margin_dem": -6.93,
+   "office": "house",
+   "p_dem": 0.1439,
+   "poll_avg": null,
+   "race": "2026-house-TX-02",
+   "rep": "Steve Toth"
+  },
+  {
+   "dem": "Evan Hunt",
+   "label": "TX-03",
+   "mean_margin_dem": -11.3,
+   "office": "house",
+   "p_dem": 0.0365,
+   "poll_avg": null,
+   "race": "2026-house-TX-03",
+   "rep": "Keith Self"
+  },
+  {
+   "dem": "Leticia Gutierrez",
+   "label": "TX-09",
+   "mean_margin_dem": -9.62,
+   "office": "house",
+   "p_dem": 0.0672,
+   "poll_avg": null,
+   "race": "2026-house-TX-09",
+   "rep": "Alex Mealer"
+  },
+  {
+   "dem": "Caitlin Rourk",
+   "label": "TX-10",
+   "mean_margin_dem": -9.75,
+   "office": "house",
+   "p_dem": 0.0658,
+   "poll_avg": null,
+   "race": "2026-house-TX-10",
+   "rep": "Chris Gober"
+  },
+  {
+   "dem": "Bobby Pulido",
+   "label": "TX-15",
+   "mean_margin_dem": 1.03,
+   "office": "house",
+   "p_dem": 0.5769,
+   "poll_avg": 7.38,
+   "race": "2026-house-TX-15",
+   "rep": "Monica De La Cruz"
+  },
+  {
+   "dem": "Kristin Hook",
+   "label": "TX-21",
+   "mean_margin_dem": -9.51,
+   "office": "house",
+   "p_dem": 0.068,
+   "poll_avg": null,
+   "race": "2026-house-TX-21",
+   "rep": "Mark Teixeira"
+  },
+  {
+   "dem": "Marquette Greene-Scott",
+   "label": "TX-22",
+   "mean_margin_dem": -11.32,
+   "office": "house",
+   "p_dem": 0.0387,
+   "poll_avg": null,
+   "race": "2026-house-TX-22",
+   "rep": "Trever Nehls"
+  },
+  {
+   "dem": "Katy Padilla Stout",
+   "label": "TX-23",
+   "mean_margin_dem": -2.32,
+   "office": "house",
+   "p_dem": 0.3461,
+   "poll_avg": -3.99,
+   "race": "2026-house-TX-23",
+   "rep": "Brandon Herrera"
+  },
+  {
+   "dem": "Kevin Burge",
+   "label": "TX-24",
+   "mean_margin_dem": -5.98,
+   "office": "house",
+   "p_dem": 0.1706,
+   "poll_avg": null,
+   "race": "2026-house-TX-24",
+   "rep": "Beth Van Duyne"
+  },
+  {
+   "dem": "Tanya Lloyd",
+   "label": "TX-27",
+   "mean_margin_dem": -10.66,
+   "office": "house",
+   "p_dem": 0.0433,
+   "poll_avg": null,
+   "race": "2026-house-TX-27",
+   "rep": "Michael Cloud"
+  },
+  {
+   "dem": "Justin Early",
+   "label": "TX-31",
+   "mean_margin_dem": -10.76,
+   "office": "house",
+   "p_dem": 0.0462,
+   "poll_avg": null,
+   "race": "2026-house-TX-31",
+   "rep": "John Carter"
+  },
+  {
+   "dem": "Dan Barrios",
+   "label": "TX-32",
+   "mean_margin_dem": -7.82,
+   "office": "house",
+   "p_dem": 0.1119,
+   "poll_avg": null,
+   "race": "2026-house-TX-32",
+   "rep": "Jace Yarbrough"
+  },
+  {
+   "dem": "Vicente Gonzalez",
+   "label": "TX-34",
+   "mean_margin_dem": 3.4,
+   "office": "house",
+   "p_dem": 0.7458,
+   "poll_avg": 5.83,
+   "race": "2026-house-TX-34",
+   "rep": "Eric Flores"
+  },
+  {
+   "dem": "Johnny Garcia",
+   "label": "TX-35",
+   "mean_margin_dem": -0.02,
+   "office": "house",
+   "p_dem": 0.4985,
+   "poll_avg": 1.06,
+   "race": "2026-house-TX-35",
+   "rep": "Carlos De La Cruz"
+  },
+  {
+   "dem": "Melissa Mcdonough",
+   "label": "TX-38",
+   "mean_margin_dem": -9.09,
+   "office": "house",
+   "p_dem": 0.0773,
+   "poll_avg": null,
+   "race": "2026-house-TX-38",
+   "rep": "Jon Bonck"
+  },
+  {
+   "dem": "Shannon Taylor",
+   "label": "VA-01",
+   "mean_margin_dem": 1.29,
+   "office": "house",
+   "p_dem": 0.6015,
+   "poll_avg": 0.36,
+   "race": "2026-house-VA-01",
+   "rep": "Rob Wittman"
+  },
+  {
+   "dem": "Elaine Luria",
+   "label": "VA-02",
+   "mean_margin_dem": 3.26,
+   "office": "house",
+   "p_dem": 0.7321,
+   "poll_avg": -1.76,
+   "race": "2026-house-VA-02",
+   "rep": "Jen Kiggans"
+  },
+  {
+   "dem": "Tom Perriello",
+   "label": "VA-05",
+   "mean_margin_dem": -4.93,
+   "office": "house",
+   "p_dem": 0.181,
+   "poll_avg": -6.16,
+   "race": "2026-house-VA-05",
+   "rep": "John Mcguire"
+  },
+  {
+   "dem": "Marie Gluesenkamp Perez",
+   "label": "WA-03",
+   "mean_margin_dem": 6.21,
+   "office": "house",
+   "p_dem": 0.8734,
+   "poll_avg": -0.61,
+   "race": "2026-house-WA-03",
+   "rep": "John Braun"
+  },
+  {
+   "dem": "John Duresky",
+   "label": "WA-04",
+   "mean_margin_dem": -10.98,
+   "office": "house",
+   "p_dem": 0.0462,
+   "poll_avg": null,
+   "race": "2026-house-WA-04",
+   "rep": "Amanda Mckinney"
+  },
+  {
+   "dem": "Carmela Conroy",
+   "label": "WA-05",
+   "mean_margin_dem": -8.83,
+   "office": "house",
+   "p_dem": 0.0851,
+   "poll_avg": null,
+   "race": "2026-house-WA-05",
+   "rep": "Michael Baumgartner"
+  },
+  {
+   "dem": "Mitchell Berman",
+   "label": "WI-01",
+   "mean_margin_dem": -1.33,
+   "office": "house",
+   "p_dem": 0.3955,
+   "poll_avg": -2.77,
+   "race": "2026-house-WI-01",
+   "rep": "Bryan Steil"
+  },
+  {
+   "dem": "Rebecca Cooke",
+   "label": "WI-03",
+   "mean_margin_dem": 5.94,
+   "office": "house",
+   "p_dem": 0.8249,
+   "poll_avg": null,
+   "race": "2026-house-WI-03",
+   "rep": "Derrick Van Orden"
+  },
+  {
+   "dem": "Brad Smith",
+   "label": "WI-06",
+   "mean_margin_dem": -10.39,
+   "office": "house",
+   "p_dem": 0.0502,
+   "poll_avg": null,
+   "race": "2026-house-WI-06",
+   "rep": "Glenn Grothman"
+  },
+  {
+   "dem": "Rick Crosson",
+   "label": "WI-08",
+   "mean_margin_dem": -7.88,
+   "office": "house",
+   "p_dem": 0.1092,
+   "poll_avg": null,
+   "race": "2026-house-WI-08",
+   "rep": "Tony Wied"
+  },
+  {
+   "dem": "Mary Peltola",
+   "label": "AK",
+   "mean_margin_dem": 1.69,
+   "office": "sen",
+   "p_dem": 0.6484,
+   "poll_avg": 1.42,
+   "race": "2026-sen-AK",
+   "rep": "Dan Sullivan"
+  },
+  {
+   "dem": "Everett Wess",
+   "label": "AL",
+   "mean_margin_dem": -17.35,
+   "office": "sen",
+   "p_dem": 0.0002,
+   "poll_avg": -13.06,
+   "race": "2026-sen-AL",
+   "rep": "Barry Moore"
+  },
+  {
+   "dem": "Hallie Shoffner",
+   "label": "AR",
+   "mean_margin_dem": -18.07,
+   "office": "sen",
+   "p_dem": 0.0004,
+   "poll_avg": -14.49,
+   "race": "2026-sen-AR",
+   "rep": "Tom Cotton"
+  },
+  {
+   "dem": "John Hickenlooper",
+   "label": "CO",
+   "mean_margin_dem": 24.0,
+   "office": "sen",
+   "p_dem": 1.0,
+   "poll_avg": 14.68,
+   "race": "2026-sen-CO",
+   "rep": "Mark Baisley"
+  },
+  {
+   "dem": "Chris Coons",
+   "label": "DE",
+   "mean_margin_dem": 32.19,
+   "office": "sen",
+   "p_dem": 1.0,
+   "poll_avg": null,
+   "race": "2026-sen-DE",
+   "rep": "Michael Katz"
+  },
+  {
+   "dem": "Angie Nixon",
+   "label": "FL special",
+   "mean_margin_dem": -5.77,
+   "office": "sen",
+   "p_dem": 0.0777,
+   "poll_avg": -5.86,
+   "race": "2026-sen-FL-S",
+   "rep": "Ashley Moody"
+  },
+  {
+   "dem": "Jon Ossoff",
+   "label": "GA",
+   "mean_margin_dem": 9.89,
+   "office": "sen",
+   "p_dem": 0.9929,
+   "poll_avg": 10.26,
+   "race": "2026-sen-GA",
+   "rep": "Mike Collins"
+  },
+  {
+   "dem": "Josh Turek",
+   "label": "IA",
+   "mean_margin_dem": -0.62,
+   "office": "sen",
+   "p_dem": 0.4299,
+   "poll_avg": 0.66,
+   "race": "2026-sen-IA",
+   "rep": "Ashley Hinson"
+  },
+  {
+   "dem": "Todd Achilles",
+   "label": "ID",
+   "mean_margin_dem": -9.03,
+   "office": "sen",
+   "p_dem": 0.0711,
+   "poll_avg": 5.25,
+   "race": "2026-sen-ID",
+   "rep": "Jim Risch"
+  },
+  {
+   "dem": "Juliana Stratton",
+   "label": "IL",
+   "mean_margin_dem": 13.96,
+   "office": "sen",
+   "p_dem": 0.9967,
+   "poll_avg": 11.18,
+   "race": "2026-sen-IL",
+   "rep": "Don Tracy"
+  },
+  {
+   "dem": "Adam Hamilton",
+   "label": "KS",
+   "mean_margin_dem": 1.15,
+   "office": "sen",
+   "p_dem": 0.6124,
+   "poll_avg": 2.86,
+   "race": "2026-sen-KS",
+   "rep": "Roger Marshall"
+  },
+  {
+   "dem": "Charles Booker",
+   "label": "KY",
+   "mean_margin_dem": -18.67,
+   "office": "sen",
+   "p_dem": 0.0119,
+   "poll_avg": null,
+   "race": "2026-sen-KY",
+   "rep": "Andy Barr"
+  },
+  {
+   "dem": "Jamie Davis",
+   "label": "LA",
+   "mean_margin_dem": -14.05,
+   "office": "sen",
+   "p_dem": 0.0468,
+   "poll_avg": null,
+   "race": "2026-sen-LA",
+   "rep": "Julia Letlow"
+  },
+  {
+   "dem": "Ed Markey",
+   "label": "MA",
+   "mean_margin_dem": 27.27,
+   "office": "sen",
+   "p_dem": 1.0,
+   "poll_avg": 23.93,
+   "race": "2026-sen-MA",
+   "rep": "John Deaton"
+  },
+  {
+   "dem": "Troy Jackson",
+   "label": "ME",
+   "mean_margin_dem": 5.08,
+   "office": "sen",
+   "p_dem": 0.906,
+   "poll_avg": 4.29,
+   "race": "2026-sen-ME",
+   "rep": "Susan Collins"
+  },
+  {
+   "dem": "Abdul El-Sayed",
+   "label": "MI",
+   "mean_margin_dem": 5.63,
+   "office": "sen",
+   "p_dem": 0.9367,
+   "poll_avg": 4.77,
+   "race": "2026-sen-MI",
+   "rep": "Mike Rogers"
+  },
+  {
+   "dem": "Peggy Flanagan",
+   "label": "MN",
+   "mean_margin_dem": 7.14,
+   "office": "sen",
+   "p_dem": 0.964,
+   "poll_avg": 6.06,
+   "race": "2026-sen-MN",
+   "rep": "Michele Tafoya"
+  },
+  {
+   "dem": "Scott Colom",
+   "label": "MS",
+   "mean_margin_dem": -6.6,
+   "office": "sen",
+   "p_dem": 0.139,
+   "poll_avg": -4.62,
+   "race": "2026-sen-MS",
+   "rep": "Cindy Hyde-Smith"
+  },
+  {
+   "dem": "Seth Bodnar",
+   "label": "MT",
+   "mean_margin_dem": -10.55,
+   "office": "sen",
+   "p_dem": 0.0123,
+   "poll_avg": -10.99,
+   "race": "2026-sen-MT",
+   "rep": "Kurt Alme"
+  },
+  {
+   "dem": "Roy Cooper",
+   "label": "NC",
+   "mean_margin_dem": 9.01,
+   "office": "sen",
+   "p_dem": 0.9942,
+   "poll_avg": 9.93,
+   "race": "2026-sen-NC",
+   "rep": "Michael Whatley"
+  },
+  {
+   "dem": "Dan Osborn",
+   "label": "NE",
+   "mean_margin_dem": -3.77,
+   "office": "sen",
+   "p_dem": 0.1794,
+   "poll_avg": -1.73,
+   "race": "2026-sen-NE",
+   "rep": "Pete Ricketts"
+  },
+  {
+   "dem": "Chris Pappas",
+   "label": "NH",
+   "mean_margin_dem": 9.94,
+   "office": "sen",
+   "p_dem": 0.9926,
+   "poll_avg": 8.39,
+   "race": "2026-sen-NH",
+   "rep": "John Sununu"
+  },
+  {
+   "dem": "Cory Booker",
+   "label": "NJ",
+   "mean_margin_dem": 26.88,
+   "office": "sen",
+   "p_dem": 0.9994,
+   "poll_avg": null,
+   "race": "2026-sen-NJ",
+   "rep": "Justin Murphy"
+  },
+  {
+   "dem": "Ben Ray Luján",
+   "label": "NM",
+   "mean_margin_dem": 20.74,
+   "office": "sen",
+   "p_dem": 1.0,
+   "poll_avg": 16.79,
+   "race": "2026-sen-NM",
+   "rep": "Larry Marker"
+  },
+  {
+   "dem": "Sherrod Brown",
+   "label": "OH special",
+   "mean_margin_dem": 2.6,
+   "office": "sen",
+   "p_dem": 0.7594,
+   "poll_avg": 2.52,
+   "race": "2026-sen-OH-S",
+   "rep": "Jon Husted"
+  },
+  {
+   "dem": "N'Kiyla Thomas",
+   "label": "OK",
+   "mean_margin_dem": -26.69,
+   "office": "sen",
+   "p_dem": 0.0001,
+   "poll_avg": -23.48,
+   "race": "2026-sen-OK",
+   "rep": "Kevin Hern"
+  },
+  {
+   "dem": "Jeff Merkley",
+   "label": "OR",
+   "mean_margin_dem": 26.49,
+   "office": "sen",
+   "p_dem": 0.9997,
+   "poll_avg": null,
+   "race": "2026-sen-OR",
+   "rep": "David Brock Smith"
+  },
+  {
+   "dem": "Jack Reed",
+   "label": "RI",
+   "mean_margin_dem": 32.63,
+   "office": "sen",
+   "p_dem": 1.0,
+   "poll_avg": 29.87,
+   "race": "2026-sen-RI",
+   "rep": "Raymond McKay"
+  },
+  {
+   "dem": "Annie Andrews",
+   "label": "SC",
+   "mean_margin_dem": -3.23,
+   "office": "sen",
+   "p_dem": 0.217,
+   "poll_avg": -1.51,
+   "race": "2026-sen-SC",
+   "rep": "Darline Graham"
+  },
+  {
+   "dem": "Brian Bengs",
+   "label": "SD",
+   "mean_margin_dem": -13.18,
+   "office": "sen",
+   "p_dem": 0.0028,
+   "poll_avg": -9.44,
+   "race": "2026-sen-SD",
+   "rep": "Mike Rounds"
+  },
+  {
+   "dem": "Marquita Bradshaw",
+   "label": "TN",
+   "mean_margin_dem": -24.05,
+   "office": "sen",
+   "p_dem": 0.0003,
+   "poll_avg": -20.47,
+   "race": "2026-sen-TN",
+   "rep": "Bill Hagerty"
+  },
+  {
+   "dem": "James Talarico",
+   "label": "TX",
+   "mean_margin_dem": 1.64,
+   "office": "sen",
+   "p_dem": 0.676,
+   "poll_avg": 3.53,
+   "race": "2026-sen-TX",
+   "rep": "Ken Paxton"
+  },
+  {
+   "dem": "Mark Warner",
+   "label": "VA",
+   "mean_margin_dem": 29.12,
+   "office": "sen",
+   "p_dem": 0.9998,
+   "poll_avg": null,
+   "race": "2026-sen-VA",
+   "rep": "Bert Mizusawa"
+  },
+  {
+   "dem": "Rachel Fetty Anderson",
+   "label": "WV",
+   "mean_margin_dem": -33.82,
+   "office": "sen",
+   "p_dem": 0.0,
+   "poll_avg": null,
+   "race": "2026-sen-WV",
+   "rep": "Shelley Moore Capito"
+  },
+  {
+   "dem": "James Byrd",
+   "label": "WY",
+   "mean_margin_dem": -32.35,
+   "office": "sen",
+   "p_dem": 0.0,
+   "poll_avg": null,
+   "race": "2026-sen-WY",
+   "rep": "Harriet Hageman"
+  }
+ ],
+ "senate": {
+  "dem_seats_90": [
+   49.0,
+   57.0
+  ],
+  "dem_seats_mean": 52.6671,
+  "p_dem_control": 0.8158
+ }
+}

@@ -252,6 +252,9 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .tally .tl-bar i.r { background: var(--rep); border-radius: 0 4px 4px 0 }
 .tally .tl-bar b { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink) }
 .tally .ts { font-size: 11px; color: var(--muted) }
+.tally .tl-win { font: 700 12px var(--body); padding: 4px 6px; border-radius: 6px; text-align: center; color: #fff }
+.tally .tl-win.D { background: var(--dem) }
+.tally .tl-win.R { background: var(--rep) }
 @media (max-width: 900px) { .tip3 { grid-template-columns: minmax(0, 1fr) } .tally { border: 0; padding-inline: 0 } }
 .tip3 .tip { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); margin-top: 4px }
 .tip-pane { min-width: 0 }
@@ -1770,11 +1773,17 @@ function drawTipping(c, b) {
     if (v === "sen") { tD += DS.sen_holdover_dem; tR += 100 - rows.length - DS.sen_holdover_dem; }
   }
   const unit = v === "pres" ? "electoral votes" : "seats";
+  // decided: a side has reached the line (Senate: 51, or 50 with the vice president; in a presidential year the VP is
+  // only known in a simulation, so locked-in calls need 51)
+  let vpD = DS.vp_party === "D";
+  if (DS._prep[mode].pres) vpD = scenario ? c.ev[scenario.j] >= 270 : null;
+  const winner = v !== "sen" ? (tD >= line ? "D" : tR >= line ? "R" : null)
+    : tD >= 51 || (tD === 50 && vpD === true) ? "D" : tR >= 51 || (tR === 50 && vpD === false) ? "R" : null;
   const tallyHtml = `<div class="tally" title="${scenario ? "Totals in this simulation" : `${unit[0].toUpperCase() + unit.slice(1)} locked in by your calls${v === "sen" ? ", including seats not up this year" : ""}`}">
     <h4>${scenario ? "Result" : "Locked in"}</h4>
     <div class="tl-n"><span class="dem">${tD}</span><span class="rep">${tR}</span></div>
     <div class="tl-bar"><i class="d" style="width:${(tD / tot * 100).toFixed(1)}%"></i><i class="r" style="width:${(tR / tot * 100).toFixed(1)}%"></i><b style="left:${(line / tot * 100).toFixed(1)}%"></b></div>
-    <div class="ts">${unit} · ${line} to win${!scenario && v !== "pres" && v !== "house" ? "" : ""}</div></div>`;
+    <div class="ts">${unit} · ${line} to win</div>${winner ? `<div class="tl-win ${winner}">${winner === "D" ? "Democrats" : "Republicans"} win ${v === "pres" ? "the presidency" : v === "house" ? "the House" : "the Senate"}</div>` : ""}</div>`;
   box.className = "tip3";
   box.innerHTML = `<div class="tip-pane"><h4>Called</h4><div class="tip">${callHtml}</div></div>
     ${tallyHtml}

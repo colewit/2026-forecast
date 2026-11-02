@@ -1813,7 +1813,10 @@ function drawTipping(c, b) {
   });
   const fl = s_ => flips.filter(f => f[1] === s_).length;
   flips.sort((a, b2) => (a[3] ? 0 : 1) - (b2[3] ? 0 : 1) || (one ? Math.abs(a[2]) - Math.abs(b2[2]) : 0));
-  const flipHtml = flips.length ? flips.slice(0, K).map(([i, win, sm, pk]) => { const r = rows[i], p = c.view[v].p[i], h = H[r.race];
+  // House: many seats, so the flips are small tabs like the calls (no remove button), every one listed, scrolling
+  const flipHtml = flips.length && v === "house" ? `<div class="tip-calls">${flips.map(([i, win, sm, pk]) => { const r = rows[i], h = H[r.race], p = c.view[v].p[i];
+      return `<span class="call-chip ${win}" title="${r.label}: held by ${h === "D" ? "Democrats" : "Republicans"}, ${one ? "won by " + (win === "D" ? "Democrats" : "Republicans") + " (" + fmtM(sm) + ")" : "called for " + (win === "D" ? "Democrats" : "Republicans")}">${r.label} <b>${h}→${win}</b></span>`; }).join("")}</div>`
+    : flips.length ? flips.slice(0, K).map(([i, win, sm, pk]) => { const r = rows[i], p = c.view[v].p[i], h = H[r.race];
       const sub = one ? `${h} → ${win} · ${fmtM(sm)}` : pk ? `${h} → ${win} · your call` : `${h} → ${win} · ${win === "D" ? pct(p) : pct(1 - p)}`;
       return tipCard(r, one ? marginFill(sm) : pk ? sideCol(pk) : fill(p), null, sub, `${r.label || r.state}: held by ${h === "D" ? "Democrats" : "Republicans"}, ${one ? "won by " + (win === "D" ? "Democrats" : "Republicans") + (res ? " (" : " in this simulation (") + fmtM(sm) + ")" : pk ? "called for " + (win === "D" ? "Democrats" : "Republicans") : (win === "D" ? "Democrats" : "Republicans") + " favored (" + (win === "D" ? pct(p) : pct(1 - p)) + ")"}`); }).join("") + more(flips.length, K)
     : `<span class="sub">No seat changes party${res ? "" : scenario ? " in this simulation" : ""}.</span>`;
@@ -1866,7 +1869,7 @@ function drawTipping(c, b) {
   box.className = res ? "tip3 no-called" : "tip3";
   box.innerHTML = `${res ? "" : `<div class="tip-pane"><h4>Called${called.length ? ` <span class="tip-ct">${called.length}</span>` : ""}</h4>${callHtml}</div>`}
     ${tallyHtml}
-    <div class="tip-pane"><h4>Flips${flips.length ? ` <span class="tip-ct">D +${fl("D")} · R +${fl("R")}</span>` : ""}</h4><div class="tip">${flipHtml}</div></div>
+    <div class="tip-pane"><h4>Flips${flips.length ? ` <span class="tip-ct">D +${fl("D")} · R +${fl("R")}</span>` : ""}</h4>${v === "house" && flips.length ? flipHtml : `<div class="tip">${flipHtml}</div>`}</div>
     <div class="tip-pane"><h4>${one ? "Tipping point" : "Likeliest tipping points"}</h4><div class="tip">${tipHtml}</div></div>`;
   $("tip-note").textContent = "";
 }

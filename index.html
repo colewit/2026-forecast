@@ -248,6 +248,13 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .tip-pane { min-width: 0 }
 .tip-pane h4 { margin: 0; font: 600 12px var(--body); color: var(--ink); letter-spacing: .02em; text-transform: uppercase }
 .tip-pane h4 .tip-ct { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--muted); margin-left: 6px }
+.tip-calls { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; max-height: 168px; overflow-y: auto; align-content: flex-start }
+.call-chip { font: 500 12px var(--body); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; color: var(--ink) }
+.call-chip b { font-weight: 700; margin-left: 2px }
+.call-chip.D { background: color-mix(in srgb, var(--dem) 14%, var(--surface)); border-color: color-mix(in srgb, var(--dem) 45%, var(--line)) }
+.call-chip.D b { color: var(--dem) }
+.call-chip.R { background: color-mix(in srgb, var(--rep) 14%, var(--surface)); border-color: color-mix(in srgb, var(--rep) 45%, var(--line)) }
+.call-chip.R b { color: var(--rep) }
 .tip-more { align-self: center; justify-self: start; font-size: 12px; color: var(--muted) }
 .tl-wrap { position: relative }
 .tl svg .tl-grid { stroke: var(--line); stroke-dasharray: 2 3 }
@@ -1703,8 +1710,8 @@ function drawTipping(c, b) {
   const more = (n, k) => n > k ? `<div class="tip-more">+${n - k} more</div>` : "";
   const sideCol = s => s === "D" ? "var(--dem)" : "var(--rep)";
   const K = 6;
-  const callHtml = called.length ? called.slice(0, K).map(([i, s]) => { const r = rows[i], p0 = b.view[v].p[i];
-      return tipCard(r, sideCol(s), null, `Called ${s} · was ${s === "D" ? pct(p0) : pct(1 - p0)}`, `${r.label || r.state} called for ${s === "D" ? "Democrats" : "Republicans"}; the forecast gave them ${s === "D" ? pct(p0) : pct(1 - p0)}`); }).join("") + more(called.length, K)
+  const callHtml = called.length ? `<div class="tip-calls">${called.map(([i, s_]) => { const r = rows[i], p0 = b.view[v].p[i];
+      return `<span class="call-chip ${s_}" title="${r.label || r.state} called for ${s_ === "D" ? "Democrats" : "Republicans"}; the forecast gave them ${s_ === "D" ? pct(p0) : pct(1 - p0)}">${r.label || r.state}${r.special ? " (sp.)" : ""} <b>${s_}</b></span>`; }).join("")}</div>`
     : `<span class="sub">No ${what} races called${scenario ? "" : " on this tab"}.</span>`;
   // flips: seats going to the party that doesn't hold them. With calls, only the called races; in a simulation, its winners
   const H = window.HELD || {}, flips = [];
@@ -1739,8 +1746,7 @@ function drawTipping(c, b) {
   box.innerHTML = `<div class="tip-pane"><h4>Called</h4><div class="tip">${callHtml}</div></div>
     <div class="tip-pane"><h4>Flips${flips.length ? ` <span class="tip-ct">D +${fl("D")} · R +${fl("R")}</span>` : ""}</h4><div class="tip">${flipHtml}</div></div>
     <div class="tip-pane"><h4>${scenario ? "Tipping point" : "Likeliest tipping points"}</h4><div class="tip">${tipHtml}</div></div>`;
-  $("tip-note").textContent = scenario ? "Flips: seats this simulation gives to the party that doesn't hold them now. Tipping point: the race that carried the winner over the line here."
-    : "Flips: called races that go to the party that doesn't hold the seat now. Tipping points: among the simulations consistent with your calls.";
+  $("tip-note").textContent = "";
 }
 function drawTimelines() {
   const H = HIST[year], tl = H && H.timeline;

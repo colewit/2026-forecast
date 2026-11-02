@@ -227,6 +227,27 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .tl svg { width: 100%; height: auto; display: block; cursor: pointer }
 .tl svg text { font-family: var(--body); font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums }
 .tl > div { min-width: 0 }
+.tl .tip-cell { grid-column: span 2 }
+@media (max-width: 900px) { .tl .tip-cell { grid-column: auto } }
+.tip { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; margin-top: 6px }
+.tip-card { border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 7px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  background: color-mix(in srgb, var(--ink) 2%, var(--surface)) }
+.tip-card svg { width: 100%; height: 58px; display: block; cursor: default; overflow: visible }
+.tip-card .tn { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font: 600 12px var(--body); color: var(--ink); white-space: nowrap; overflow: hidden }
+.tip-card .tn small { font-weight: 500; color: var(--muted); font-size: 11px }
+.tip-card .tv { font: 700 20px var(--body); font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1 }
+.tip-card .tb { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden }
+.tip-card .tb i { display: block; height: 100% ; background: var(--muted) }
+.tip-card .ts { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums }
+.tip-note { margin-top: 8px; font-size: 12px }
+.tl.tl-alt > div:first-child { display: none }
+.tl.tl-alt .tip-cell { grid-column: 1 / -1 }
+.tip3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 6px }
+@media (max-width: 900px) { .tip3 { grid-template-columns: minmax(0, 1fr) } }
+.tip3 .tip { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); margin-top: 4px }
+.tip-pane { min-width: 0 }
+.tip-pane h4 { margin: 0; font: 600 12px var(--body); color: var(--ink); letter-spacing: .02em; text-transform: uppercase }
+.tip-more { align-self: center; justify-self: start; font-size: 12px; color: var(--muted) }
 .tl-wrap { position: relative }
 .tl svg .tl-grid { stroke: var(--line); stroke-dasharray: 2 3 }
 .tl svg .tl-zero { stroke: var(--muted); stroke-opacity: .6; stroke-width: 1 }
@@ -536,8 +557,7 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
     <div class="tl">
       <div><h3>Chance of Democratic win (<span id="tl-mode"></span>)</h3><svg id="tl-odds" role="img" aria-label="Chances over time"></svg>
         <div class="legend" id="tl-legend"></div></div>
-      <div><h3 id="tl-gen-h">Generic ballot average (D − R)</h3><svg id="tl-gen" role="img" aria-label="Generic ballot over time"></svg></div>
-      <div><h3>Presidential net approval</h3><svg id="tl-appr" role="img" aria-label="Net approval over time"></svg></div>
+      <div class="tip-cell"><h3 id="tip-h">Likeliest tipping points</h3><div id="tip" class="tip"></div><div class="sub tip-note" id="tip-note"></div></div>
     </div>
   </section>
 
@@ -637,7 +657,7 @@ const raceKey = r => r.label || (r.state + (r.special ? "-S" : ""));
 // ---------- core computation
 function compute(usePicks = true) {
   const m = DS._prep[mode], N = DS.n_sims;
-  if (m.static) { const s = m.static; return { n: N, keep: null, static: true, view: s.view, sen: s.sen || null, house: s.house || null, pres: s.pres || null, env: s.env || null, joint: s.joint || null,
+  if (m.static) { const s = m.static; return { n: N, keep: null, static: true, view: s.view, sen: s.sen || null, house: s.house || null, pres: s.pres || null, env: s.env || null, joint: s.joint || null, tip: s.tip || null,
     hist: { senSeats: s.hist_sen, houseSeats: s.hist_house, ev: s.hist_ev } }; }
   const keep = new Uint8Array(N).fill(1);
   if (usePicks) for (const [key, side] of Object.entries(picks)) {
@@ -1594,10 +1614,133 @@ function lineChart(svg, dates, series, opts) {
 }
 let tlResize = null;
 window.addEventListener("resize", () => { clearTimeout(tlResize); tlResize = setTimeout(() => drawTimelines(), 150); });
+// ---------- tipping points: in each simulation, order the races from most to least Democratic; the tipping point is the
+// race that carries the winner over the line (Senate: the seat that decides control, with the VP breaking a 50-50 tie;
+// House: the 218th seat, counting the safe seats not stored race by race from the simulation's seat total; President:
+// the state that takes the winner past 269 electoral votes). Races tied on the stored half-point margin share a simulation.
+function tipNeed(v, c, j, m, R, N) {
+  if (v === "pres") return 270;
+  if (v === "house") { let comp = 0; for (let i = 0; i < R; i++) if (m.house[i * N + j] > 0) comp++; return 218 - (c.houseSeats[j] - comp); }
+  const vpD = m.pres ? c.ev[j] >= 270 : DS.vp_party === "D";
+  return (vpD ? 50 : 51) - DS.sen_holdover_dem;
+}
+function tipping(c, v) {
+  if (c.static) return (c.tip || {})[v] || null;
+  c._tip = c._tip || {};
+  if (c._tip[v]) return c._tip[v];
+  const m = DS._prep[mode], arr = m[v], rows = DS.views[v];
+  if (!arr || !rows) return null;
+  const R = rows.length, N = arr.length / R, keep = c.keep, cnt = new Float64Array(R), wsum = new Float64Array(256), w = new Float64Array(R);
+  for (let i = 0; i < R; i++) w[i] = v === "pres" ? rows[i].ev : 1;
+  let n = 0;
+  for (let j = 0; j < N; j++) {
+    if (keep && !keep[j]) continue;
+    const need = tipNeed(v, c, j, m, R, N);
+    for (let i = 0; i < R; i++) wsum[arr[i * N + j] + 128] += w[i];
+    let cum = 0, b = -1;
+    for (let x = 255; x >= 0; x--) { cum += wsum[x]; if (cum >= need) { b = x; break; } }
+    if (b >= 0 && need > 0) {
+      let k = 0; for (let i = 0; i < R; i++) if (arr[i * N + j] + 128 === b) k++;
+      for (let i = 0; i < R; i++) if (arr[i * N + j] + 128 === b) cnt[i] += 1 / k;
+      n++;
+    }
+    for (let i = 0; i < R; i++) wsum[arr[i * N + j] + 128] = 0;
+  }
+  return (c._tip[v] = n ? Array.from(cnt, x => x / n) : null);
+}
+function tipOne(c, v, j) {      // the tipping race of one simulation, or -1
+  const m = DS._prep[mode], arr = m[v], rows = DS.views[v];
+  if (!arr || !rows) return -1;
+  const R = rows.length, N = arr.length / R, need = tipNeed(v, c, j, m, R, N);
+  if (need <= 0) return -1;
+  const o = [...Array(R).keys()].sort((a, b) => arr[b * N + j] - arr[a * N + j]);
+  let cum = 0; for (const i of o) { cum += v === "pres" ? rows[i].ev : 1; if (cum >= need) return i; }
+  return -1;
+}
+function pathBox(d) {
+  const nums = (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let k = 0; k + 1 < nums.length; k += 2) { const x = nums[k], y = nums[k + 1]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  return [x0, y0, x1 - x0, y1 - y0];
+}
+// one card: the state's shape (a square for a House district) in `col`, the race, a big value, a bar and a line under it
+function tipCard(r, col, big, sub, title, bar) {
+  const lab = r.label || r.state, d = view !== "house" ? ((window.FORECAST || {}).geo || {})[r.state] : null;
+  let shape;
+  if (d) { const [bx, by, bw, bh] = pathBox(d), pad = Math.max(bw, bh) * 0.06;
+    shape = `<svg viewBox="${bx - pad} ${by - pad} ${bw + 2 * pad} ${bh + 2 * pad}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${d}" fill="${col}" stroke="var(--surface)" stroke-width="${Math.max(bw, bh) / 60}"/></svg>`; }
+  else shape = `<svg viewBox="0 0 100 58" aria-hidden="true"><rect x="22" y="2" width="54" height="54" rx="9" fill="${col}"/></svg>`;
+  return `<div class="tip-card" title="${title}">${shape}<div class="tn"><span>${lab}</span><small>${r.special ? "special" : ""}</small></div>
+    ${big != null ? `<div class="tv">${big}</div>` : ""}${bar != null ? `<div class="tb"><i style="width:${(bar * 100).toFixed(1)}%"></i></div>` : ""}<div class="ts">${sub}</div></div>`;
+}
+const tipPct = x => (x >= 0.995 ? ">99" : Math.round(x * 100) || "<1") + "%";
+function likeliest(c, v, k) {
+  const t = tipping(c, v);
+  if (!t) return null;
+  return t.map((x, i) => [i, x]).filter(([, x]) => x >= 0.005).sort((a, b) => b[1] - a[1]).slice(0, k);
+}
+function drawTipping(c, b) {
+  const v = view, rows = DS.views[v] || [], box = $("tip"), m = DS._prep[mode], N = DS.n_sims;
+  const what = v === "house" ? "House" : v === "pres" ? "President" : "Senate";
+  const called = rows.map((r, i) => [i, picks[v + ":" + raceKey(r)]]).filter(([, s]) => s);
+  const alt = !!scenario || Object.keys(picks).length > 0;
+  document.querySelector(".tl").classList.toggle("tl-alt", alt);
+  if (!alt) {
+    $("tip-h").textContent = `Likeliest tipping points · ${what}`;
+    const top = c.n ? likeliest(c, v, v === "house" ? 12 : 8) : null;
+    if (!top) { box.className = "tip"; box.innerHTML = '<span class="sub">No simulations for this date.</span>'; $("tip-note").textContent = ""; return; }
+    const mx = top.length ? top[0][1] : 1;
+    box.className = "tip";
+    box.innerHTML = top.map(([i, x]) => { const r = rows[i], p = c.view[v].p[i];
+      return tipCard(r, fill(p), tipPct(x), `D wins ${pct(p)}`, `${r.label || r.state}: decides ${v === "pres" ? "the presidency" : "control"} in ${(x * 100).toFixed(1)}% of simulations; Democrats win it in ${pct(p)}`, x / mx); }).join("");
+    $("tip-note").textContent = `Share of simulations in which each race ${v === "pres" ? "puts the winner past 269 electoral votes" : v === "house" ? "is the 218th seat for the majority" : "is the seat that decides control"}. Shape color is the Democratic chance; the top ${top.length} cover ${Math.round(top.reduce((a, [, x]) => a + x, 0) * 100)}%.`;
+    return;
+  }
+  // calls made or one simulation open: your calls | flips | tipping point
+  $("tip-h").textContent = scenario ? `This simulation · ${what}` : `Your calls · ${what}`;
+  const more = (n, k) => n > k ? `<div class="tip-more">+${n - k} more</div>` : "";
+  const sideCol = s => s === "D" ? "var(--dem)" : "var(--rep)";
+  const K = 6;
+  const callHtml = called.length ? called.slice(0, K).map(([i, s]) => { const r = rows[i], p0 = b.view[v].p[i];
+      return tipCard(r, sideCol(s), null, `Called ${s} · was ${s === "D" ? pct(p0) : pct(1 - p0)}`, `${r.label || r.state} called for ${s === "D" ? "Democrats" : "Republicans"}; the forecast gave them ${s === "D" ? pct(p0) : pct(1 - p0)}`); }).join("") + more(called.length, K)
+    : `<span class="sub">No ${what} races called${scenario ? "" : " on this tab"}.</span>`;
+  let flips = [];
+  if (scenario) {
+    rows.forEach((r, i) => { if (!r.contested || picks[v + ":" + raceKey(r)]) return; const x = m[v][i * N + scenario.j];
+      if ((x > 0) !== (c.view[v].p[i] > 0.5)) flips.push([i, Math.abs(c.view[v].p[i] - 0.5), x / 2]); });
+    flips.sort((a, b2) => b2[1] - a[1]);
+  } else {
+    rows.forEach((r, i) => { if (!r.contested || picks[v + ":" + raceKey(r)]) return;
+      if ((c.view[v].p[i] > 0.5) !== (b.view[v].p[i] > 0.5)) flips.push([i, Math.abs(c.view[v].p[i] - b.view[v].p[i])]); });
+    flips.sort((a, b2) => b2[1] - a[1]);
+  }
+  const flipHtml = flips.length ? flips.slice(0, K).map(([i, , sm]) => { const r = rows[i], p = c.view[v].p[i], p0 = b.view[v].p[i];
+      return scenario ? tipCard(r, marginFill(sm), null, `${sm > 0 ? "D" : "R"} wins: ${fmtM(sm)} · ${sm > 0 ? pct(p) : pct(1 - p)} chance`, `${r.label || r.state}: ${fmtM(sm)} in this simulation, against the forecast favorite`)
+        : tipCard(r, fill(p), null, `${p > .5 ? "D" : "R"} now ${p > .5 ? pct(p) : pct(1 - p)} · was ${p > .5 ? pct(p0) : pct(1 - p0)}`, `${r.label || r.state}: Democratic chance ${pct(p0)} before your calls, ${pct(p)} now`); }).join("") + more(flips.length, K)
+    : `<span class="sub">${scenario ? "Every race went to the forecast favorite." : "No race changed favorite."}</span>`;
+  let tipHtml;
+  if (scenario) {
+    const i = tipOne(c, v, scenario.j);
+    if (i < 0) tipHtml = '<span class="sub">No single deciding race in this simulation.</span>';
+    else { const r = rows[i], x = m[v][i * N + scenario.j] / 2;
+      tipHtml = tipCard(r, marginFill(x), fmtM(x), `decided ${v === "pres" ? "the presidency" : "control"} for ${x > 0 ? "Democrats" : "Republicans"}`, `${r.label || r.state} put the winner over the line in this simulation`); }
+  } else {
+    const top = c.n ? likeliest(c, v, 4) : null, mx = top && top.length ? top[0][1] : 1;
+    tipHtml = top && top.length ? top.map(([i, x]) => { const r = rows[i], p = c.view[v].p[i];
+      return tipCard(r, fill(p), tipPct(x), `D wins ${pct(p)}`, `${r.label || r.state}: decides control in ${(x * 100).toFixed(1)}% of the simulations left by your calls`, x / mx); }).join("")
+      : '<span class="sub">Your calls settle it: no simulations left to decide.</span>';
+  }
+  box.className = "tip3";
+  box.innerHTML = `<div class="tip-pane"><h4>Called</h4><div class="tip">${callHtml}</div></div>
+    <div class="tip-pane"><h4>${scenario ? "Upsets" : "Flipped favorite"}</h4><div class="tip">${flipHtml}</div></div>
+    <div class="tip-pane"><h4>${scenario ? "Tipping point" : "Likeliest tipping points"}</h4><div class="tip">${tipHtml}</div></div>`;
+  $("tip-note").textContent = scenario ? "Upsets: races this simulation gives to the side the forecast had as the underdog. Tipping point: the race that carried the winner over the line here."
+    : "Flipped favorite: races whose favorite changed because of your calls. Tipping points: among the simulations consistent with your calls.";
+}
 function drawTimelines() {
   const H = HIST[year], tl = H && H.timeline;
   $("tl-mode").textContent = modeName().toLowerCase();
-  if (!tl) { ["tl-odds", "tl-gen", "tl-appr"].forEach(id => $(id).innerHTML = ""); $("tl-legend").innerHTML = '<span class="sub">Loading…</span>'; return; }
+  if (!tl) { ["tl-odds"].forEach(id => $(id).innerHTML = ""); $("tl-legend").innerHTML = '<span class="sub">Loading…</span>'; return; }
   const m = tl.modes[mode] || {};
   const series = [];
   if (m.p_senate_dem && m.p_senate_dem.some(v => v != null)) series.push({ name: "Senate", color: "var(--s-sen)", vals: m.p_senate_dem.map(v => v == null ? null : v * 100) });
@@ -1605,10 +1748,6 @@ function drawTimelines() {
   if (m.p_pres_dem && m.p_pres_dem.some(v => v != null)) series.push({ name: "President", color: "var(--s-pres)", vals: m.p_pres_dem.map(v => v == null ? null : v * 100) });
   lineChart($("tl-odds"), tl.dates, series, { lo: 0, hi: 100, ticks: [0, 50, 100], fmt: v => Math.round(v) + "%", zero: 50 });
   $("tl-legend").innerHTML = "";
-  const presTl = tl.pres_poll && tl.pres_poll.some(v => v != null);
-  $("tl-gen-h").textContent = presTl ? "National presidential poll average (D − R)" : "Generic ballot average (D − R)";
-  lineChart($("tl-gen"), tl.dates, [{ name: presTl ? "Popular vote (polls)" : "Generic ballot", color: "var(--s-sen)", vals: presTl ? tl.pres_poll : tl.generic }], { fmt: v => fmtM(v).replace(".0", ""), zero: 0 });
-  lineChart($("tl-appr"), tl.dates, [{ name: "Net approval", color: "var(--muted)", vals: tl.approval }], { fmt: v => (v > 0 ? "+" : "") + v.toFixed(0), zero: 0 });
 }
 
 // ---------- data loading & navigation
@@ -1706,7 +1845,7 @@ function render() {
   $("map-h").textContent = showResult ? "What happened" : scenario ? "One simulated outcome" : DS._prep[mode].static ? "Forecast odds on this date" : view === "house" ? "Click a district to call it" : "Click a state to call it";
   $("tbl-h").textContent = view === "pres" ? "States" : view === "house" ? `Competitive House districts (${(DS.views.house || []).length})` : "Races";
   drawMap(c); drawHist(c); drawSummary(c, b);
-  if (view === "house" && houseMap === "shift" && DS.shift_map) $("map-h").textContent = "Shift since 2024, by district"; drawTable(c, b); drawNational(c, b); drawScenario(c); drawTimelines();
+  if (view === "house" && houseMap === "shift" && DS.shift_map) $("map-h").textContent = "Shift since 2024, by district"; drawTable(c, b); drawNational(c, b); drawScenario(c); drawTimelines(); drawTipping(c, b);
 }
 
 document.querySelectorAll("[data-hm]").forEach(b => b.addEventListener("click", () => { houseMap = b.dataset.hm; buildMapLayer(); render(); }));

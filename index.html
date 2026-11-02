@@ -1706,14 +1706,15 @@ function drawTipping(c, b) {
   const callHtml = called.length ? called.slice(0, K).map(([i, s]) => { const r = rows[i], p0 = b.view[v].p[i];
       return tipCard(r, sideCol(s), null, `Called ${s} · was ${s === "D" ? pct(p0) : pct(1 - p0)}`, `${r.label || r.state} called for ${s === "D" ? "Democrats" : "Republicans"}; the forecast gave them ${s === "D" ? pct(p0) : pct(1 - p0)}`); }).join("") + more(called.length, K)
     : `<span class="sub">No ${what} races called${scenario ? "" : " on this tab"}.</span>`;
-  // flips: seats the other party now holds. With calls, the called side or else the favourite; in a simulation, its winner
+  // flips: seats going to the party that doesn't hold them. With calls, only the called races; in a simulation, its winners
   const H = window.HELD || {}, flips = [];
   rows.forEach((r, i) => {
     const h = H[r.race]; if (!h || !r.contested) return;
     const pk = picks[v + ":" + raceKey(r)];
     let win, sm = null;
     if (scenario) { sm = m[v][i * N + scenario.j] / 2; win = sm > 0 ? "D" : "R"; }
-    else win = pk || (c.view[v].p[i] > 0.5 ? "D" : "R");
+    else if (pk) win = pk;
+    else return;
     if (win !== h) flips.push([i, win, sm, pk]);
   });
   const fl = s_ => flips.filter(f => f[1] === s_).length;
@@ -1739,7 +1740,7 @@ function drawTipping(c, b) {
     <div class="tip-pane"><h4>Flips${flips.length ? ` <span class="tip-ct">D +${fl("D")} · R +${fl("R")}</span>` : ""}</h4><div class="tip">${flipHtml}</div></div>
     <div class="tip-pane"><h4>${scenario ? "Tipping point" : "Likeliest tipping points"}</h4><div class="tip">${tipHtml}</div></div>`;
   $("tip-note").textContent = scenario ? "Flips: seats this simulation gives to the party that doesn't hold them now. Tipping point: the race that carried the winner over the line here."
-    : "Flips: seats the party that doesn't hold them now has called or is favored to win. Tipping points: among the simulations consistent with your calls.";
+    : "Flips: called races that go to the party that doesn't hold the seat now. Tipping points: among the simulations consistent with your calls.";
 }
 function drawTimelines() {
   const H = HIST[year], tl = H && H.timeline;

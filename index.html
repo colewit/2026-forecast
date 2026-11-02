@@ -276,6 +276,8 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 @media (max-width: 900px) { .tip3, .tip3.no-called { grid-template-columns: minmax(0, 1fr) } .tally { border: 0; padding-inline: 0 } }
 .tip3 .tip { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); margin-top: 4px }
 .tip-pane { min-width: 0 }
+.tip3 > .tip-pane:last-child { border-left: 1px solid var(--line); padding-left: 18px }
+@media (max-width: 900px) { .tip3 > .tip-pane:last-child { border-left: 0; padding-left: 0 } }
 .tip-pane h4 { margin: 0; font: 600 12px var(--body); color: var(--ink); letter-spacing: .02em; text-transform: uppercase }
 .tip-pane h4 .tip-ct { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--muted); margin-left: 6px }
 .tip-calls { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; max-height: 168px; overflow-y: auto; align-content: flex-start }
@@ -1740,7 +1742,7 @@ function tipCard(r, col, big, sub, title, bar, check) {
   if (d) { const [bx, by, bw, bh, area] = shapeBox(d), A = 2.4;
     // every shape covers about the same share of its card (by its area, so a near-rectangle like Kansas isn't oversized),
     // and the box is the main landmass only (Alaska's Aleutians don't shrink it); anything outside is clipped
-    const W = Math.max(Math.sqrt(area * A / 0.3), bw * 1.08, bh * 1.08 * A), H = W / A, cx = bx + bw / 2, cy = by + bh / 2;
+    const W = Math.max(Math.sqrt(area * A / 0.36), bw * 1.08, bh * 1.08 * A), H = W / A, cx = bx + bw / 2, cy = by + bh / 2;
     shape = `<svg viewBox="${(cx - W / 2).toFixed(1)} ${(cy - H / 2).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="${d}" fill="${col}" stroke="var(--surface)" stroke-width="${(W / 160).toFixed(2)}"/></svg>`; }
   else shape = `<svg viewBox="0 0 100 58" aria-hidden="true"><rect x="22" y="2" width="54" height="54" rx="9" fill="${col}"/></svg>`;
   return `<div class="tip-card" title="${title}">${shape}<div class="tn"><span>${lab}${check ? tipCheck(check) : ""}</span><small>${r.special ? "special" : ""}</small></div>

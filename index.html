@@ -242,8 +242,17 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .tip-note { margin-top: 8px; font-size: 12px }
 .tl.tl-alt > div:first-child { display: none }
 .tl.tl-alt .tip-cell { grid-column: 1 / -1 }
-.tip3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 6px }
-@media (max-width: 900px) { .tip3 { grid-template-columns: minmax(0, 1fr) } }
+.tip3 { display: grid; grid-template-columns: minmax(0, 1fr) 128px minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-top: 6px }
+.tally { display: flex; flex-direction: column; gap: 6px; padding: 0 4px; border-left: 1px solid var(--line); border-right: 1px solid var(--line); padding-inline: 14px }
+.tally h4 { margin: 0; font: 600 12px var(--body); color: var(--ink); letter-spacing: .02em; text-transform: uppercase }
+.tally .tl-n { display: flex; justify-content: space-between; font: 700 26px var(--body); font-variant-numeric: tabular-nums; line-height: 1.1 }
+.tally .tl-bar { position: relative; height: 8px; border-radius: 4px; background: var(--line); overflow: visible; display: flex; justify-content: space-between }
+.tally .tl-bar i { display: block; height: 100% }
+.tally .tl-bar i.d { background: var(--dem); border-radius: 4px 0 0 4px }
+.tally .tl-bar i.r { background: var(--rep); border-radius: 0 4px 4px 0 }
+.tally .tl-bar b { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink) }
+.tally .ts { font-size: 11px; color: var(--muted) }
+@media (max-width: 900px) { .tip3 { grid-template-columns: minmax(0, 1fr) } .tally { border: 0; padding-inline: 0 } }
 .tip3 .tip { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); margin-top: 4px }
 .tip-pane { min-width: 0 }
 .tip-pane h4 { margin: 0; font: 600 12px var(--body); color: var(--ink); letter-spacing: .02em; text-transform: uppercase }
@@ -251,6 +260,9 @@ th .th-sub { display: block; font-size: 10px; font-weight: 500; letter-spacing: 
 .tip-calls { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; max-height: 168px; overflow-y: auto; align-content: flex-start }
 .call-chip { font: 500 12px var(--body); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; color: var(--ink) }
 .call-chip b { font-weight: 700; margin-left: 2px }
+.call-chip { display: inline-flex; align-items: center }
+.call-x { border: 0; background: none; padding: 0 0 0 5px; margin: 0; font: 600 13px/1 var(--body); color: var(--muted); cursor: pointer }
+.call-x:hover { color: var(--ink) }
 .call-chip.D { background: color-mix(in srgb, var(--dem) 14%, var(--surface)); border-color: color-mix(in srgb, var(--dem) 45%, var(--line)) }
 .call-chip.D b { color: var(--dem) }
 .call-chip.R { background: color-mix(in srgb, var(--rep) 14%, var(--surface)); border-color: color-mix(in srgb, var(--rep) 45%, var(--line)) }
@@ -1688,6 +1700,7 @@ function likeliest(c, v, k) {
   if (!t) return null;
   return t.map((x, i) => [i, x]).filter(([, x]) => x >= 0.005).sort((a, b) => b[1] - a[1]).slice(0, k);
 }
+$("tip").addEventListener("click", e => { const x = e.target.closest(".call-x"); if (x) setPick(x.dataset.key, null); });
 function drawTipping(c, b) {
   const v = view, rows = DS.views[v] || [], box = $("tip"), m = DS._prep[mode], N = DS.n_sims;
   const what = v === "house" ? "House" : v === "pres" ? "President" : "Senate";
@@ -1711,7 +1724,7 @@ function drawTipping(c, b) {
   const sideCol = s => s === "D" ? "var(--dem)" : "var(--rep)";
   const K = 6;
   const callHtml = called.length ? `<div class="tip-calls">${called.map(([i, s_]) => { const r = rows[i], p0 = b.view[v].p[i];
-      return `<span class="call-chip ${s_}" title="${r.label || r.state} called for ${s_ === "D" ? "Democrats" : "Republicans"}; the forecast gave them ${s_ === "D" ? pct(p0) : pct(1 - p0)}">${r.label || r.state}${r.special ? " (sp.)" : ""} <b>${s_}</b></span>`; }).join("")}</div>`
+      return `<span class="call-chip ${s_}" title="${r.label || r.state} called for ${s_ === "D" ? "Democrats" : "Republicans"}; the forecast gave them ${s_ === "D" ? pct(p0) : pct(1 - p0)}">${r.label || r.state}${r.special ? " (sp.)" : ""} <b>${s_}</b><button type="button" class="call-x" data-key="${v + ":" + raceKey(r)}" aria-label="Remove the call on ${r.label || r.state}">×</button></span>`; }).join("")}</div>`
     : `<span class="sub">No ${what} races called${scenario ? "" : " on this tab"}.</span>`;
   // flips: seats going to the party that doesn't hold them. With calls, only the called races; in a simulation, its winners
   const H = window.HELD || {}, flips = [];
@@ -1742,8 +1755,29 @@ function drawTipping(c, b) {
       return tipCard(r, fill(p), tipPct(x), `D wins ${pct(p)}`, `${r.label || r.state}: decides control in ${(x * 100).toFixed(1)}% of the simulations left by your calls`, x / mx); }).join("")
       : '<span class="sub">Your calls settle it: no simulations left to decide.</span>';
   }
+  // tally between the panels: seats (or electoral votes) locked in by your calls, counting Senate seats not up; in a
+  // simulation, its final totals
+  const tot = v === "pres" ? 538 : v === "house" ? 435 : 100, line = v === "pres" ? 270 : v === "house" ? 218 : 51;
+  let tD, tR;
+  if (scenario) {
+    const j = scenario.j;
+    tD = v === "pres" ? c.ev[j] : v === "house" ? c.houseSeats[j] : c.senSeats[j];
+    tR = tot - tD;
+  } else {
+    const w_ = r => v === "pres" ? r.ev : 1;
+    tD = called.reduce((a, [i, s_]) => a + (s_ === "D" ? w_(rows[i]) : 0), 0);
+    tR = called.reduce((a, [i, s_]) => a + (s_ === "R" ? w_(rows[i]) : 0), 0);
+    if (v === "sen") { tD += DS.sen_holdover_dem; tR += 100 - rows.length - DS.sen_holdover_dem; }
+  }
+  const unit = v === "pres" ? "electoral votes" : "seats";
+  const tallyHtml = `<div class="tally" title="${scenario ? "Totals in this simulation" : `${unit[0].toUpperCase() + unit.slice(1)} locked in by your calls${v === "sen" ? ", including seats not up this year" : ""}`}">
+    <h4>${scenario ? "Result" : "Locked in"}</h4>
+    <div class="tl-n"><span class="dem">${tD}</span><span class="rep">${tR}</span></div>
+    <div class="tl-bar"><i class="d" style="width:${(tD / tot * 100).toFixed(1)}%"></i><i class="r" style="width:${(tR / tot * 100).toFixed(1)}%"></i><b style="left:${(line / tot * 100).toFixed(1)}%"></b></div>
+    <div class="ts">${unit} · ${line} to win${!scenario && v !== "pres" && v !== "house" ? "" : ""}</div></div>`;
   box.className = "tip3";
   box.innerHTML = `<div class="tip-pane"><h4>Called</h4><div class="tip">${callHtml}</div></div>
+    ${tallyHtml}
     <div class="tip-pane"><h4>Flips${flips.length ? ` <span class="tip-ct">D +${fl("D")} · R +${fl("R")}</span>` : ""}</h4><div class="tip">${flipHtml}</div></div>
     <div class="tip-pane"><h4>${scenario ? "Tipping point" : "Likeliest tipping points"}</h4><div class="tip">${tipHtml}</div></div>`;
   $("tip-note").textContent = "";

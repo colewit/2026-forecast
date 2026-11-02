@@ -1777,8 +1777,11 @@ function drawTipping(c, b) {
   // only known in a simulation, so locked-in calls need 51)
   let vpD = DS.vp_party === "D";
   if (DS._prep[mode].pres) vpD = scenario ? c.ev[scenario.j] >= 270 : null;
-  const winner = v !== "sen" ? (tD >= line ? "D" : tR >= line ? "R" : null)
+  const winner0 = v !== "sen" ? (tD >= line ? "D" : tR >= line ? "R" : null)
     : tD >= 51 || (tD === 50 && vpD === true) ? "D" : tR >= 51 || (tR === 50 && vpD === false) ? "R" : null;
+  // or the race is all but over: the chamber (or presidency) at >99% given your calls
+  const pc_ = (c[v] || {}).p;
+  const winner = winner0 || (!scenario && pc_ != null ? (pc_ >= 0.995 ? "D" : pc_ <= 0.005 ? "R" : null) : null);
   const tallyHtml = `<div class="tally" title="${scenario ? "Totals in this simulation" : `${unit[0].toUpperCase() + unit.slice(1)} locked in by your calls${v === "sen" ? ", including seats not up this year" : ""}`}">
     <h4>${scenario ? "Result" : "Locked in"}</h4>
     <div class="tl-n"><span class="dem">${tD}</span><span class="rep">${tR}</span></div>

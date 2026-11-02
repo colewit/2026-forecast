@@ -333,7 +333,8 @@ window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\
   <p>Each simulation draws \(x^{(i)}\) from the posterior mixture and sets \(m^{(i)}_r = f_r + L_r x^{(i)}\). Incumbency enters through its lognormal directly: an incumbent's race gets \(\iota_r\big(e^{\mu_T + \sqrt{v_T}\,u^{(i)}} - \E[e^{\mu_T + \sqrt{v_T} u}]\big)\) in place of its linearized term. Seat totals and control follow per simulation:</p>
   <div class="eq">\[ \text{Senate}^{(i)} = H_D + \sum_{r} \mathbb 1\big[m^{(i)}_r > 0\big], \qquad
   \text{D control} \iff \text{Senate}^{(i)} \ge 51 \;\text{ or }\; \big(\text{Senate}^{(i)} = 50 \text{ and the vice president is a Democrat}\big) \]</div>
-  <p>\(H_D\) is the Democratic seats not up this cycle; independents running in the Democratic lane count as Democrats. House control is 218 or more Democratic seats. Chances are shares of 10,000 simulations on the live day (2,000 for earlier dates and past cycles). The page's calls keep only the simulations where the called race went the chosen way.</p>
+  <p>\(H_D\) is the Democratic seats not up this cycle; independents running in the Democratic lane count as Democrats. House control is 218 or more Democratic seats. Chances are shares of 10,000 simulations on the live day (2,000 for earlier dates and past cycles). The page's calls keep only the simulations where the called race went the chosen way; calls in several races (Senate and presidential alike) combine, and every other race and the seat totals move with them.</p>
+  <p>Past cycles and earlier dates show what the model would have said on that date with only what was known then: polls released by that day and settings fit on earlier cycles.</p>
 </section>
 
 <section id="fixed">

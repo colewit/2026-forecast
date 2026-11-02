@@ -64,6 +64,7 @@ header { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; justi
 .ghost { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; text-decoration: none }
 .ghost:disabled { opacity: .45; cursor: default }
 .ghost[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+#result[aria-pressed="true"] { background: var(--surface); color: var(--ink); border-color: var(--ink) }
 select { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 10px }
 label.sel { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--muted) }
 /* header toolbar: one height, one radius, one type size; selects with a drawn chevron; page links as quiet text links
@@ -620,11 +621,6 @@ tr.row:hover td { background: color-mix(in oklab, var(--surface) 92%, var(--ink)
     <div class="tbl-more" id="tbl-more" hidden><button class="ghost" id="tbl-all"></button></div>
   </section>
 
-  <div class="notes">
-    <div>Every number comes from simulated elections: 10,000 for the latest 2026 day, 2,000 for earlier dates and past elections. A pick keeps only the simulations where that race went your way, so every other race, the seat totals and the House move with it. Senate and presidential picks combine.</div>
-    <div>Past elections show what the model would have said on that date using only information available then: polls released by that day and model settings fit on earlier cycles.</div>
-    <div>Poll average: weighted by recency, sample size, likely-voter screen and pollster reliability from earlier cycles, after removing house effects (each pollster's historical lean, updated with how its polls compare with other pollsters' this cycle) and moving registered-voter polls to a likely-voter basis; stale polls are shifted by how much the national environment has moved since. Independents running in the Democratic lane count as Democratic seats.</div>
-  </div>
 </div>
 
 <script src="forecast_data.js?v=2026-11-02"></script>

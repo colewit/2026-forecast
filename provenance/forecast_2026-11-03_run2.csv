@@ -1,0 +1,158 @@
+race,office,label,dem,rep,p_dem,mean_margin_dem,poll_avg
+2026-house-AK-00,house,AK-AL,Bill Hill,Nick Begich Iii,0.3332,-2.1,-3.94
+2026-house-AL-02,house,AL-02,Shomari Figures,Rhett Marques,0.4009,-1.3,-1.24
+2026-house-AR-02,house,AR-02,Chris Jones,French Hill,0.1353,-5.78,-3.15
+2026-house-AZ-01,house,AZ-01,Amish Shah,Jay Feely,0.8433,5.43,2.74
+2026-house-AZ-02,house,AZ-02,Jonathan Nez,Eli Crane,0.4824,-0.21,2.79
+2026-house-AZ-05,house,AZ-05,Elizabeth Lee,Mark Lamb,0.0787,-9.41,
+2026-house-AZ-06,house,AZ-06,Joanna Mendoza,Juan Ciscomani,0.8974,8.11,
+2026-house-AZ-08,house,AZ-08,Bernadette Greene-Placentia,Abraham Hamadeh,0.1506,-6.6,
+2026-house-CA-05,house,CA-05,Michael Masuda,Tom Mcclintock,0.0531,-10.36,
+2026-house-CA-13,house,CA-13,Adam Gray,Kevin Lincoln,0.9712,12.05,
+2026-house-CA-22,house,CA-22,Randy Villegas,David Valadao,0.9069,7.65,10.0
+2026-house-CA-23,house,CA-23,Tessa Lynn Hodge,Jay Obernolte,0.0418,-11.45,
+2026-house-CO-03,house,CO-03,Dwayne Romero,Jeff Hurd,0.473,-0.39,-2.2
+2026-house-CO-04,house,CO-04,Eileen Laubacher,Lauren Boebert,0.2091,-4.63,-8.54
+2026-house-CO-05,house,CO-05,Jessica Killin,Jeff Crank,0.3323,-2.83,
+2026-house-CO-08,house,CO-08,Manny Rutinel,Gabe Evans,0.8351,6.29,
+2026-house-FL-02,house,FL-02,Amanda Green,Austin Rogers,0.1947,-5.57,
+2026-house-FL-04,house,FL-04,Lashonda Holloway,Aaron Bean,0.1522,-6.52,
+2026-house-FL-05,house,FL-05,Rachel Grage,John Rutherford,0.0404,-11.1,
+2026-house-FL-07,house,FL-07,Bale Dalton,Ryan Elijah,0.5857,1.48,
+2026-house-FL-08,house,FL-08,Jennifer Jenkins,Mike Haridopolos,0.1498,-6.78,
+2026-house-FL-09,house,FL-09,Darren Soto,Dan Green,0.2057,-5.36,
+2026-house-FL-11,house,FL-11,James Pericola,Joe Strada,0.1654,-6.27,
+2026-house-FL-12,house,FL-12,Kimberly Overman,Gus Bilirakis,0.0704,-9.44,
+2026-house-FL-13,house,FL-13,Leela Gray,Anna Paulina Luna,0.4447,-0.69,-0.05
+2026-house-FL-14,house,FL-14,Kathy Castor,Mike Beltran,0.7447,3.74,5.79
+2026-house-FL-16,house,FL-16,Kelly Kirschner,Sydney Gruters,0.3114,-2.82,-4.8
+2026-house-FL-18,house,FL-18,Curtis Gibson,Scott Franklin,0.0359,-11.49,
+2026-house-FL-21,house,FL-21,James Martin,Brian Mast,0.1021,-8.16,
+2026-house-FL-22,house,FL-22,Pia Dandiya,Casey Askar,0.52,0.36,0.0
+2026-house-FL-25,house,FL-25,Jared Moskowitz,Scott Singer,0.77,4.03,3.95
+2026-house-FL-26,house,FL-26,Nicole Locklin,Mario Díaz-Balart,0.0457,-10.64,
+2026-house-FL-27,house,FL-27,Eliott Rodriguez,María Elvira Salazar,0.2434,-3.81,-2.76
+2026-house-GA-01,house,GA-01,Amanda Hollowell,Jim Kingston,0.0824,-9.25,
+2026-house-GA-12,house,GA-12,Ceretta Smith,Rick Allen,0.0702,-9.23,
+2026-house-IA-01,house,IA-01,Christina Bohannan,Mariannette Miller-Meeks,0.8323,5.7,2.44
+2026-house-IA-02,house,IA-02,Lindsay James,Joe Mitchell,0.6396,1.95,3.78
+2026-house-IA-03,house,IA-03,Sarah Trone Garriott,Zach Nunn,0.8417,6.41,
+2026-house-IN-05,house,IN-05,J.D. Ford,Victoria Spartz,0.194,-4.36,-1.68
+2026-house-KS-02,house,KS-02,Don Coover,Derek Schmidt,0.0848,-8.67,
+2026-house-KY-06,house,KY-06,Zach Dembo,Ralph Alvarado,0.4134,-1.1,4.66
+2026-house-MD-01,house,MD-01,Dan Schwartz,Andy Harris,0.0524,-10.35,
+2026-house-ME-02,house,ME-02,Matthew Dunlap,Paul Lepage,0.2499,-3.76,-6.2
+2026-house-MI-01,house,MI-01,Callie Barr,Jack Bergman,0.055,-10.11,
+2026-house-MI-04,house,MI-04,Sean Mccann,Bill Huizenga,0.5045,0.13,
+2026-house-MI-07,house,MI-07,William Lawrence,Tom Barrett,0.9193,7.69,8.69
+2026-house-MI-10,house,MI-10,Christina Hines,Michael Bouchard Jr.,0.6582,2.28,-2.86
+2026-house-MN-01,house,MN-01,Jake Johnson,Brad Finstad,0.4039,-1.25,0.15
+2026-house-MN-08,house,MN-08,Trina Swanson,Pete Stauber,0.1694,-6.02,
+2026-house-MO-02,house,MO-02,Fred Wellman,Ann Wagner,0.6265,1.52,2.31
+2026-house-MT-01,house,MT-01,Sam Forstag,Aaron Flint,0.7871,3.85,4.8
+2026-house-NC-01,house,NC-01,Don Davis,Laurie Buckhout,0.7947,4.91,11.58
+2026-house-NC-03,house,NC-03,Raymond Smith Jr.,Greg Murphy,0.1442,-6.78,
+2026-house-NC-05,house,NC-05,Chuck Hubbard,Virginia Foxx,0.2437,-4.42,
+2026-house-NC-06,house,NC-06,Cyril Jefferson,Addison Mcdowell,0.0477,-10.56,
+2026-house-NC-07,house,NC-07,Kimberly Hardy,David Rouzer,0.2886,-3.57,
+2026-house-NC-08,house,NC-08,Colby Watson,Mark Harris,0.0419,-11.06,
+2026-house-NC-09,house,NC-09,Richard Ojeda,Richard Hudson,0.2074,-4.57,-5.05
+2026-house-NC-10,house,NC-10,Ashley Bell,Pat Harrigan,0.0912,-8.51,
+2026-house-NC-11,house,NC-11,Jamie Ager,Jennifer Balkcom,0.9296,8.19,13.79
+2026-house-NC-13,house,NC-13,Paul Barringer,Brad Knott,0.2014,-5.39,
+2026-house-NC-14,house,NC-14,Lakesha Womack,Tim Moore,0.1057,-7.88,
+2026-house-NE-01,house,NE-01,Chris Backemeyer,Mike Flood,0.2133,-4.22,-1.94
+2026-house-NJ-02,house,NJ-02,Zack Mullock,Jeff Van Drew,0.1534,-6.53,
+2026-house-NJ-07,house,NJ-07,Rebecca Bennett,Thomas Kean Jr.,0.7522,4.47,
+2026-house-NJ-09,house,NJ-09,Nellie Pou,Rosie Pino,0.9497,10.78,
+2026-house-NM-02,house,NM-02,Gabe Vasquez,Greg Cunningham,0.9219,7.79,3.06
+2026-house-NV-01,house,NV-01,Dina Titus,Carrie Buck,0.9678,11.83,
+2026-house-NV-02,house,NV-02,Teresa Benitez-Thompson,David Flippo,0.3257,-2.5,-3.05
+2026-house-NV-03,house,NV-03,Susie Lee,Martin O'Donnell,0.933,9.49,
+2026-house-NY-01,house,NY-01,Chris Gallant,Nick Lalota,0.3687,-2.21,
+2026-house-NY-02,house,NY-02,Patrick Halpin,Andrew Garbarino,0.072,-9.48,
+2026-house-NY-03,house,NY-03,Tom Suozzi,Mike Lipetri,0.9069,8.57,
+2026-house-NY-04,house,NY-04,Laura Gillen,Jeanine Driscoll,0.9742,12.32,
+2026-house-NY-17,house,NY-17,Cait Conley,Mike Lawler,0.7791,4.2,2.76
+2026-house-NY-21,house,NY-21,Blake Gendebien,Anthony Constantino,0.2467,-3.34,-0.66
+2026-house-OH-01,house,OH-01,Greg Landsman,Eric Conroy,0.91,7.45,4.45
+2026-house-OH-07,house,OH-07,Brian Poindexter,Max Miller,0.8077,4.5,7.49
+2026-house-OH-08,house,OH-08,Vanessa Enoch,Warren Davidson,0.0706,-9.38,
+2026-house-OH-09,house,OH-09,Marcy Kaptur,Derek Merrin,0.6788,2.64,-3.2
+2026-house-OH-10,house,OH-10,Kristina Knickerbocker,Mike Turner,0.4644,-0.47,-0.2
+2026-house-OH-15,house,OH-15,Don Leonard,Mike Carey,0.5989,1.39,2.4
+2026-house-OK-01,house,OK-01,John Croisant,Mark Tedford,0.0366,-11.62,
+2026-house-OK-05,house,OK-05,Jena Nelson,Stephanie Bice,0.1137,-7.69,
+2026-house-PA-01,house,PA-01,Bob Harvie,Brian Fitzpatrick,0.4881,-0.17,-4.25
+2026-house-PA-07,house,PA-07,Bob Brooks,Ryan Mackenzie,0.8824,6.43,5.83
+2026-house-PA-08,house,PA-08,Paige Cognetti,Rob Bresnahan,0.7755,4.23,4.79
+2026-house-PA-10,house,PA-10,Janelle Stelson,Scott Perry,0.8216,5.9,
+2026-house-SC-01,house,SC-01,Nancy Lacore,Jenny Costa Honeycutt,0.4362,-0.88,0.94
+2026-house-SC-02,house,SC-02,Zyon Khalifa,Joe Wilson,0.108,-7.86,
+2026-house-SC-05,house,SC-05,Mallory Dittmer,Wes Climer,0.0304,-12.01,
+2026-house-TN-04,house,TN-04,Victoria Broderick,Scott Desjarlais,0.0583,-10.02,
+2026-house-TN-05,house,TN-05,Chaz Molder,Charlie Hatcher,0.1408,-7.04,
+2026-house-TN-07,house,TN-07,Darden Copeland,Matt Van Epps,0.0515,-10.4,
+2026-house-TN-08,house,TN-08,Heidi Kuhn,David Kustoff,0.0388,-11.32,
+2026-house-TN-09,house,TN-09,Justin J. Pearson,Brent Taylor,0.1161,-6.71,-4.35
+2026-house-TX-02,house,TX-02,Shaun Finnie,Steve Toth,0.1494,-6.73,
+2026-house-TX-03,house,TX-03,Evan Hunt,Keith Self,0.0402,-11.14,
+2026-house-TX-05,house,TX-05,Chelsey Hockett,Lance Gooden,0.0309,-11.96,
+2026-house-TX-09,house,TX-09,Leticia Gutierrez,Alex Mealer,0.076,-9.28,
+2026-house-TX-10,house,TX-10,Caitlin Rourk,Chris Gober,0.0678,-9.54,
+2026-house-TX-15,house,TX-15,Bobby Pulido,Monica De La Cruz,0.5923,1.28,7.38
+2026-house-TX-21,house,TX-21,Kristin Hook,Mark Teixeira,0.0745,-9.33,
+2026-house-TX-22,house,TX-22,Marquette Greene-Scott,Trever Nehls,0.0411,-11.14,
+2026-house-TX-23,house,TX-23,Katy Padilla Stout,Brandon Herrera,0.3485,-2.24,-3.99
+2026-house-TX-24,house,TX-24,Kevin Burge,Beth Van Duyne,0.1897,-5.71,
+2026-house-TX-27,house,TX-27,Tanya Lloyd,Michael Cloud,0.0488,-10.55,
+2026-house-TX-31,house,TX-31,Justin Early,John Carter,0.0469,-10.59,
+2026-house-TX-32,house,TX-32,Dan Barrios,Jace Yarbrough,0.1194,-7.48,
+2026-house-TX-34,house,TX-34,Vicente Gonzalez,Eric Flores,0.7597,3.58,5.83
+2026-house-TX-35,house,TX-35,Johnny Garcia,Carlos De La Cruz,0.5105,0.09,1.06
+2026-house-TX-38,house,TX-38,Melissa Mcdonough,Jon Bonck,0.0835,-8.91,
+2026-house-VA-01,house,VA-01,Shannon Taylor,Rob Wittman,0.6098,1.41,0.36
+2026-house-VA-02,house,VA-02,Elaine Luria,Jen Kiggans,0.7265,3.31,-1.76
+2026-house-VA-05,house,VA-05,Tom Perriello,John Mcguire,0.1865,-4.85,-6.16
+2026-house-WA-03,house,WA-03,Marie Gluesenkamp Perez,John Braun,0.877,6.3,-0.61
+2026-house-WA-04,house,WA-04,John Duresky,Amanda Mckinney,0.048,-10.91,
+2026-house-WA-05,house,WA-05,Carmela Conroy,Michael Baumgartner,0.0831,-8.79,
+2026-house-WI-01,house,WI-01,Mitchell Berman,Bryan Steil,0.4018,-1.22,-2.77
+2026-house-WI-03,house,WI-03,Rebecca Cooke,Derrick Van Orden,0.8299,6.06,
+2026-house-WI-06,house,WI-06,Brad Smith,Glenn Grothman,0.0539,-10.28,
+2026-house-WI-08,house,WI-08,Rick Crosson,Tony Wied,0.1094,-7.73,
+2026-sen-AK,sen,AK,Mary Peltola,Dan Sullivan,0.7342,2.64,2.54
+2026-sen-AL,sen,AL,Everett Wess,Barry Moore,0.0001,-17.44,-13.07
+2026-sen-AR,sen,AR,Hallie Shoffner,Tom Cotton,0.0001,-17.97,-14.49
+2026-sen-CO,sen,CO,John Hickenlooper,Mark Baisley,1.0,25.5,20.83
+2026-sen-DE,sen,DE,Chris Coons,Michael Katz,0.9999,32.49,
+2026-sen-FL-S,sen,FL special,Angie Nixon,Ashley Moody,0.0996,-5.14,-5.29
+2026-sen-GA,sen,GA,Jon Ossoff,Mike Collins,0.9871,8.81,9.33
+2026-sen-IA,sen,IA,Josh Turek,Ashley Hinson,0.5575,0.55,1.72
+2026-sen-ID,sen,ID,Todd Achilles,Jim Risch,0.0684,-8.98,5.15
+2026-sen-IL,sen,IL,Juliana Stratton,Don Tracy,0.9988,14.17,11.73
+2026-sen-KS,sen,KS,Adam Hamilton,Roger Marshall,0.8254,3.52,5.05
+2026-sen-KY,sen,KY,Charles Booker,Andy Barr,0.0122,-18.37,
+2026-sen-LA,sen,LA,Jamie Davis,Julia Letlow,0.1521,-6.57,1.23
+2026-sen-MA,sen,MA,Ed Markey,John Deaton,1.0,27.46,23.92
+2026-sen-ME,sen,ME,Troy Jackson,Susan Collins,0.9322,5.64,4.67
+2026-sen-MI,sen,MI,Abdul El-Sayed,Mike Rogers,0.9643,6.59,5.76
+2026-sen-MN,sen,MN,Peggy Flanagan,Michele Tafoya,0.959,6.83,5.74
+2026-sen-MS,sen,MS,Scott Colom,Cindy Hyde-Smith,0.1394,-6.57,-4.62
+2026-sen-MT,sen,MT,Seth Bodnar,Kurt Alme,0.0153,-10.37,-11.0
+2026-sen-NC,sen,NC,Roy Cooper,Michael Whatley,0.9987,11.06,12.01
+2026-sen-NE,sen,NE,Dan Osborn,Pete Ricketts,0.1792,-3.74,-1.78
+2026-sen-NH,sen,NH,Chris Pappas,John Sununu,0.996,10.4,8.71
+2026-sen-NJ,sen,NJ,Cory Booker,Justin Murphy,0.9995,27.11,
+2026-sen-NM,sen,NM,Ben Ray Luján,Larry Marker,1.0,22.72,18.89
+2026-sen-OH-S,sen,OH special,Sherrod Brown,Jon Husted,0.8411,3.76,3.72
+2026-sen-OK,sen,OK,N'Kiyla Thomas,Kevin Hern,0.0002,-26.46,-23.59
+2026-sen-OR,sen,OR,Jeff Merkley,David Brock Smith,0.9996,26.81,
+2026-sen-RI,sen,RI,Jack Reed,Raymond McKay,1.0,32.71,29.87
+2026-sen-SC,sen,SC,Annie Andrews,Darline Graham,0.2639,-2.54,-0.82
+2026-sen-SD,sen,SD,Brian Bengs,Mike Rounds,0.0028,-13.11,-9.44
+2026-sen-TN,sen,TN,Marquita Bradshaw,Bill Hagerty,0.0006,-23.92,-20.84
+2026-sen-TX,sen,TX,James Talarico,Ken Paxton,0.6636,1.59,3.4
+2026-sen-VA,sen,VA,Mark Warner,Bert Mizusawa,0.9997,29.39,
+2026-sen-WV,sen,WV,Rachel Fetty Anderson,Shelley Moore Capito,0.0,-33.38,
+2026-sen-WY,sen,WY,James Byrd,Harriet Hageman,0.0,-31.85,

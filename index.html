@@ -1841,6 +1841,17 @@ function drawTipping(c, b) {
       const sub = one ? `${h} → ${win} · ${fmtM(sm)}` : pk ? `${h} → ${win} · your call` : `${h} → ${win} · ${win === "D" ? pct(p) : pct(1 - p)}`;
       return tipCard(r, one ? marginFill(sm) : pk ? sideCol(pk) : fill(p), null, sub, `${r.label || r.state}: held by ${h === "D" ? "Democrats" : "Republicans"}, ${one ? "won by " + (win === "D" ? "Democrats" : "Republicans") + (res ? " (" : " in this simulation (") + fmtM(sm) + ")" : pk ? "called for " + (win === "D" ? "Democrats" : "Republicans") : (win === "D" ? "Democrats" : "Republicans") + " favored (" + (win === "D" ? pct(p) : pct(1 - p)) + ")"}`); }).join("") + more(flips.length, K)
     : `<span class="sub">No seat changes party${res ? "" : scenario ? " in this simulation" : ""}.</span>`;
+  // misses (results only): races the forecast's favorite lost, the most confident misses first
+  const pF = i => (b || c).view[v].p[i];
+  const misses = res ? rows.map((r, i) => i).filter(i => rows[i].contested && rows[i].actual != null && (rows[i].actual > 0) !== (pF(i) > 0.5))
+    .sort((a, b2) => Math.abs(pF(b2) - 0.5) - Math.abs(pF(a) - 0.5)) : [];
+  const missTitle = i => { const r = rows[i], w_ = r.actual > 0 ? "D" : "R", pw = w_ === "D" ? pF(i) : 1 - pF(i);
+    return `${r.label || r.state}: the forecast gave ${w_ === "D" ? "Democrats" : "Republicans"} ${pct(pw)}; they ${r.uncalled ? "lead" : "won"} (${fmtM(r.actual)})${r.uncalled ? ", not yet called" : ""}`; };
+  const missHtml = !misses.length ? `<span class="sub">The forecast favorite won every race.</span>`
+    : v === "house" ? `<div class="tip-calls">${misses.map(i => { const r = rows[i], w_ = r.actual > 0 ? "D" : "R";
+        return `<span class="call-chip ${w_}" title="${missTitle(i)}">${r.label}${r.uncalled ? "*" : ""} <b>${pct(w_ === "D" ? pF(i) : 1 - pF(i))}</b></span>`; }).join("")}</div>`
+    : `<div class="tip">${misses.slice(0, K).map(i => { const r = rows[i], w_ = r.actual > 0 ? "D" : "R";
+        return tipCard(r, marginFill(r.actual), fmtM(r.actual), `${w_} had ${pct(w_ === "D" ? pF(i) : 1 - pF(i))}${r.uncalled ? " · uncalled" : ""}`, missTitle(i)); }).join("")}${more(misses.length, K)}</div>`;
   let tipHtml;
   if (one) {
     const i = res ? tipActual(v, rows, A) : tipOne(c, v, scenario.j);
@@ -1887,12 +1898,12 @@ function drawTipping(c, b) {
     <div class="tl-n"><span class="dem">${tD}</span><span class="rep">${tR}</span></div>
     <div class="tl-bar"><i class="d" style="width:${(tD / tot * 100).toFixed(1)}%"></i><i class="r" style="width:${(tR / tot * 100).toFixed(1)}%"></i><b style="left:${(line / tot * 100).toFixed(1)}%"></b></div>
     <div class="ts">${unit} · ${line} to win</div>${miniChamber(miniC, v, rows, called)}${winner ? `<div class="tl-win ${winner}${winner0 ? "" : " proj"}">${winner === "D" ? "Democrats" : "Republicans"} ${winner0 ? "win" : "are projected to win"} ${v === "pres" ? "the presidency" : v === "house" ? "the House" : "the Senate"}</div>` : ""}</div>`;
-  box.className = res ? "tip3 no-called" : "tip3";
-  box.innerHTML = `${res ? "" : `<div class="tip-pane"><h4>Called${called.length ? ` <span class="tip-ct">${called.length}</span>` : ""}</h4>${callHtml}</div>`}
+  box.className = "tip3";
+  box.innerHTML = `${res ? `<div class="tip-pane"><h4>Misses${misses.length ? ` <span class="tip-ct">${misses.length} of ${rows.filter(r => r.contested && r.actual != null).length}</span>` : ""}</h4>${missHtml}</div>` : `<div class="tip-pane"><h4>Called${called.length ? ` <span class="tip-ct">${called.length}</span>` : ""}</h4>${callHtml}</div>`}
     ${tallyHtml}
     <div class="tip-pane"><h4>Flips${flips.length ? ` <span class="tip-ct">D +${fl("D")} · R +${fl("R")}</span>` : ""}</h4>${v === "house" && flips.length ? flipHtml : `<div class="tip">${flipHtml}</div>`}</div>
     <div class="tip-pane"><h4>${one ? "Tipping point" : "Likeliest tipping points"}</h4><div class="tip">${tipHtml}</div></div>`;
-  $("tip-note").textContent = "";
+  $("tip-note").textContent = res ? `Misses: races the forecast's favorite lost, with the chance it gave the winner.${misses.some(i => rows[i].uncalled) ? " * not yet called." : ""}${DS.actual_note ? " " + DS.actual_note : ""}` : "";
 }
 function drawTimelines() {
   const H = HIST[year], tl = H && H.timeline;

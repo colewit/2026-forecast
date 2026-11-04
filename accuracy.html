@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forecast Accuracy and Provenance</title>
+<meta name="description" content="How the final 2026 House and Senate forecast scored against other public models, and the Bitcoin timestamp proving it was published before Election Day.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same identity as the Explorer and Methodology pages. */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --ink: #1b1f27; --muted: #5d6573; --line: #d9dde4;
+  --dem: #2457c5; --rep: #c8322f; --accent: #2457c5; --focus: #7a4fd6; --hi: #eaf0fc;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --accent: #7aa2f2; --focus: #a98bf0; --hi: #1f2a40; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12151b; --surface: #1a1e26; --ink: #e8eaef; --muted: #9aa2b0; --line: #2d333e;
+  --dem: #5b8cf0; --rep: #ef5f58; --accent: #7aa2f2; --focus: #a98bf0; --hi: #1f2a40; color-scheme: dark }
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.6 }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px }
+h1 { font-family: var(--display); font-weight: 700; font-size: 36px; line-height: 1; margin: 0; text-wrap: balance }
+h2 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 8px 0 0; letter-spacing: .01em; text-wrap: balance }
+h3 { font-family: var(--display); font-weight: 600; font-size: 19px; margin: 6px 0 0; letter-spacing: .02em }
+.sub { color: var(--muted); font-size: 13px }
+.back { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; text-decoration: none; color: var(--ink); font-size: 14px }
+a { color: var(--accent) }
+a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px }
+section { display: grid; gap: 12px; min-width: 0 }
+section > p, section > ul, section > ol { margin: 0; max-width: 70ch }
+ul, ol { padding-left: 20px; display: grid; gap: 6px; margin: 0 }
+.note { font-size: 13px; color: var(--muted); max-width: 70ch; margin: 0 }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px }
+.stat b { font-family: var(--display); font-size: 30px; line-height: 1.1; font-variant-numeric: tabular-nums }
+.stat span { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted) }
+.tbl { overflow-x: auto; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top }
+tr:last-child td { border-bottom: 0 }
+td.v, th.v { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right }
+th.v { font-family: var(--body); font-size: 11px }
+tr.ours td { background: var(--hi); font-weight: 600 }
+.d { color: var(--dem); font-weight: 600 } .r { color: var(--rep); font-weight: 600 }
+code { font-family: var(--mono); font-size: 12.5px }
+.hash { font-family: var(--mono); font-size: 12.5px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; overflow-wrap: anywhere; max-width: 70ch }
+.misses { columns: 2; column-gap: 24px }
+@media (max-width: 560px) { .misses { columns: 1 } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Accuracy and provenance</h1>
+    <div class="sub">2026 House and Senate forecast · final forecast of November 3, 2026 · results as of November 4, 20:10 UTC (provisional)</div>
+  </div>
+  <a class="back" href="index.html">← Explorer</a>
+</header>
+
+<section>
+  <p>On provisional results, our final forecast scores best of the seven public models compared, on both Brier score and log loss. It missed 26 races, one more than the three leading models. The forecast file was anchored in Bitcoin at 13:03:48 UTC on Election Day, about ten hours before the first polls closed.</p>
+  <div class="stats">
+    <div class="stat"><span>Brier score</span><b>0.0404</b></div>
+    <div class="stat"><span>Log loss</span><b>0.1316</b></div>
+    <div class="stat"><span>Wrong races</span><b>26 / 462</b></div>
+    <div class="stat"><span>Bitcoin block</span><b>974389</b></div>
+  </div>
+</section>
+
+<section id="scoreboard">
+  <h2>Scoreboard</h2>
+  <p>Lower is better on all three measures. Other models' figures are from a public comparison posted November 4 on r/fivethirtyeight, scored on 462 races. We have not re-scored them.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Rank</th><th>Model</th><th class="v">Brier score</th><th class="v">Log loss</th><th class="v">Wrong races</th></tr></thead>
+    <tbody>
+      <tr class="ours"><td>1</td><td>This forecast (Nov. 3 final)</td><td class="v">0.0404</td><td class="v">0.1316</td><td class="v">26</td></tr>
+      <tr><td>2</td><td>Silver Bulletin (Deluxe)</td><td class="v">0.04085</td><td class="v">0.14168</td><td class="v">25</td></tr>
+      <tr><td>3</td><td>Split Ticket</td><td class="v">0.04179</td><td class="v">0.14157</td><td class="v">25</td></tr>
+      <tr><td>4</td><td>Silver Bulletin (Classic)</td><td class="v">0.04274</td><td class="v">0.14577</td><td class="v">25</td></tr>
+      <tr><td>5</td><td>VoteHub Legacy</td><td class="v">0.04286</td><td class="v">0.13586</td><td class="v">32</td></tr>
+      <tr><td>6</td><td>50+1</td><td class="v">0.04551</td><td class="v">0.15339</td><td class="v">27</td></tr>
+      <tr><td>7</td><td>DDHQ</td><td class="v">0.04862</td><td class="v">0.15875</td><td class="v">34</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Ranked by Brier score, as in the source comparison.</p>
+</section>
+
+<section id="method">
+  <h2>Scoring method</h2>
+  <p>We applied the comparison's stated rules to this forecast, so the numbers line up with the other six models.</p>
+  <ul>
+    <li><strong>Results:</strong> AP race calls from the <a href="https://elections-api.bostonglobe.com/v2/elections/2026-11-03/">Boston Globe elections feed</a>, as of November 4, 20:10 UTC. AP had called 403 of the 470 House and Senate races.</li>
+    <li><strong>Uncalled races:</strong> scored by the current vote leader, except the seven the comparison fixed. NV-02, FL-09, AZ-02, NC-03, AK-SEN and MS-SEN count as Democratic wins; WA-05 counts as Republican.</li>
+    <li><strong>Exclusions:</strong> Louisiana's two unresolved races (LA-05 runoff, LA-06 uncalled) and California's same-party contests.</li>
+    <li><strong>Measures:</strong> Brier score is the mean of (p − outcome)². Log loss uses natural logs, with p clipped to 0.5%–99.5%. A race at 50% or below counts as a Republican pick.</li>
+    <li><strong>Probabilities:</strong> each race's Democratic win chance in the final November 3 forecast (10,000 simulations).</li>
+  </ul>
+  <p class="note">The feed shows nine California same-party races, against the comparison's six, which leaves 459 races. Adding back any three of the nine gives 462 and the figures above. On 459 the figures are Brier 0.0407 and log loss 0.1325, and the ranking holds.</p>
+</section>
+
+<section id="misses">
+  <h2>Misses</h2>
+  <p>25 of the 26 misses were Democratic wins the model had as underdogs: it underrated the size of the Democratic wave. North Carolina accounts for six. The one miss the other way is FL-07. Figures are the forecast's Democratic win chance.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Race</th><th class="v">Dem chance</th><th>Scored winner</th><th>AP status</th></tr></thead>
+    <tbody>
+      <tr><td>NC-06</td><td class="v">4.8%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>TN-04</td><td class="v">5.8%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>TX-09</td><td class="v">7.5%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>NC-14</td><td class="v">10.5%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>MS-SEN</td><td class="v">13.9%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>NC-03</td><td class="v">14.4%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>NJ-02</td><td class="v">15.5%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>IN-05</td><td class="v">19.5%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>NC-13</td><td class="v">20.1%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>FL-09</td><td class="v">20.6%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>CO-04</td><td class="v">20.7%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>NC-09</td><td class="v">20.8%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>NC-05</td><td class="v">24.5%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>SC-SEN</td><td class="v">26.9%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>NV-02</td><td class="v">32.6%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>CO-05</td><td class="v">33.3%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>TX-23</td><td class="v">34.8%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>AL-02</td><td class="v">40.1%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>MN-01</td><td class="v">40.4%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>WI-01</td><td class="v">40.6%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>KY-06</td><td class="v">41.6%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>SC-01</td><td class="v">43.5%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>OH-10</td><td class="v">46.6%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>AZ-02</td><td class="v">48.4%</td><td class="d">Dem</td><td>Uncalled</td></tr>
+      <tr><td>PA-01</td><td class="v">48.9%</td><td class="d">Dem</td><td>Called</td></tr>
+      <tr><td>FL-07</td><td class="v">58.9%</td><td class="r">Rep</td><td>Uncalled</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">All 26 misses are among the 157 races listed in the timestamped file. The other 302 scored races were all called correctly.</p>
+</section>
+
+<section id="proof">
+  <h2>Proof the forecast predates the election</h2>
+  <p>The scored forecast file has a SHA-256 fingerprint that was anchored in Bitcoin at 13:03:48 UTC on November 3, 2026, almost ten hours before the first polls closed. Any later change to the file, even one character, would change its fingerprint and break the proof.</p>
+  <p><strong>File:</strong> <a href="provenance/forecast_2026-11-03.json">forecast_2026-11-03.json</a> (157 races, Senate and House control odds) · <strong>Proof:</strong> <a href="provenance/forecast_2026-11-03.json.ots">forecast_2026-11-03.json.ots</a></p>
+  <div class="hash">SHA-256 9d0956db4d75539f0a015866482b389725747713a352fc66432b926f47fea3a1</div>
+  <p class="note">A <a href="provenance/forecast_2026-11-03.csv">CSV copy</a> of the same forecast is anchored in the same block. Its fingerprint is <code>4bb566c0c45d4f0b77b21be0e510468bcf5492d707dc843f01a1d9acdb6b6f5e</code>.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Time (UTC, Nov. 3)</th><th>Record</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td class="v" style="text-align:left">23:00</td><td>First polls close</td><td>AP feed</td></tr>
+      <tr><td class="v" style="text-align:left">13:03:48</td><td>Fingerprint anchored in Bitcoin block 974389</td><td><a href="https://mempool.space/block/000000000000000000002bdf2a47d111c52dac516696a7e11bd6f077d6a8433c">mempool.space</a></td></tr>
+      <tr><td class="v" style="text-align:left">11:33:29</td><td>Wayback Machine snapshot, byte-identical to the file</td><td><a href="https://web.archive.org/web/20261103113329/https://colewit.github.io/2026-forecast/provenance/forecast_2026-11-03.json">web.archive.org</a></td></tr>
+      <tr><td class="v" style="text-align:left">10:37:47</td><td>Committed to the public GitHub repository (commit 83b7af6aa8)</td><td><a href="https://github.com/colewit/2026-forecast/commits/main/provenance/forecast_2026-11-03.json">GitHub</a></td></tr>
+    </tbody>
+  </table></div>
+  <p>The Bitcoin anchor is the strongest of the three, because no one can backdate a block. The GitHub commit time is set by the committer, so it is supporting evidence only. The Wayback snapshot is an independent third-party copy.</p>
+  <h3>How to verify</h3>
+  <ol>
+    <li>Download the file and its proof (links above).</li>
+    <li>Check the fingerprint: <code>shasum -a 256 forecast_2026-11-03.json</code> should print the SHA-256 above.</li>
+    <li>Check the proof with the OpenTimestamps client: <code>pip install opentimestamps-client</code>, then <code>ots verify forecast_2026-11-03.json.ots</code>. It reports Bitcoin block 974389. A full check needs a Bitcoin node; without one, <code>ots info forecast_2026-11-03.json.ots</code> lists the proof's steps.</li>
+    <li>Those steps end at merkle root <code>951d10e3a5f0fa626adf26c1ffc468c4bc2e7bdf4c121652a5ed75e2566aad5a</code>, which matches block 974389 on any block explorer.</li>
+  </ol>
+  <p class="note">Earlier versions from the same day are stamped too and listed in <a href="provenance/SHA256SUMS">SHA256SUMS</a>: a first run (block 974381, 10:14 UTC) and a run with duplicate generic-ballot polls removed (block 974389). The final version corrected one poll, where Wikipedia had swapped the two candidates' numbers in Emerson's Ohio Senate poll.</p>
+</section>
+
+<section id="caveats">
+  <h2>Caveats</h2>
+  <ul>
+    <li><strong>Provisional results.</strong> 66 races were uncalled at scoring time, and several are within half a point: NC-05, MN-01, AZ-02, TN-04 and FL-09. The scores will move as counting finishes.</li>
+    <li><strong>Race set.</strong> The stamped file lists the 157 races the site shows individually. The other 302 scored races are safe House seats, with odds from the same November 3 model run. All but 8 were below 2% or above 98%, and all were called correctly.</li>
+    <li><strong>Same-party exclusions.</strong> Our count of California same-party contests (nine) differs from the comparison's six. Every way of picking three to add back gives the same scores.</li>
+  </ul>
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul>
+    <li><a href="https://elections-api.bostonglobe.com/v2/elections/2026-11-03/">Boston Globe / AP elections feed</a>, read November 4, 20:10 UTC</li>
+    <li><a href="provenance/SHA256SUMS">SHA256SUMS</a>: fingerprints of every stamped forecast file</li>
+    <li>Model comparison: r/fivethirtyeight, "Silver Bulletin (Deluxe) Currently The Best-Performing Election Model," November 4, 2026</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>
